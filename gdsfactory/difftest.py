@@ -121,7 +121,7 @@ def difftest(
         c1_kl = c1.to_component_klayout()
         c2_kl = c2.to_component_klayout()
 
-        c3_kl = boolean(c1_kl, c2_kl)
+        c3_kl = boolean(c1_kl, c2_kl, tolerance=1)
         xor = c3_kl.to_component_gdstk()
         xor = xor.flatten()
         xor.name = "diff"
