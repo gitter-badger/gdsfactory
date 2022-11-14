@@ -17,18 +17,18 @@ class GdsRegressionFixture(FileRegressionFixture):
         try:
             difftest(c)
 """
+import os
 import filecmp
 import pathlib
 import shutil
 from typing import Optional, Union
-
 import gdstk
 
-import gdsfactory as gf
 from gdsfactory.component import Component
 from gdsfactory.config import CONFIG, logger
 from gdsfactory.read.import_gds import import_gds
 from gdsfactory.types import PathType
+import gdsfactory as gf
 
 
 class GeometryDifference(Exception):
@@ -68,11 +68,115 @@ def run_xor_gdstk(
     return xor
 
 
+def run_xor_klayout(
+    file1: str,
+    file2: str,
+    tolerance: int = 1,
+    verbose: bool = False,
+) -> Component:
+    """Returns XOR boolean between two files.
+
+    Raises a GeometryDifference if files are different.
+
+    FIXME!
+
+    Args:
+        file1:
+        file2:
+        tolerance:
+        verbose:
+    """
+    import klayout.db as kdb
+
+    _library = kdb.Library()
+    layout = _library.layout()
+
+    l1 = kdb.Layout()
+    l1.read(str(file1))
+
+    l2 = kdb.Layout()
+    l2.read(str(file2))
+
+    l3 = kdb.Layout()
+
+    # Check that same set of layers are present
+    layer_pairs = []
+    for ll1 in l1.layer_indices():
+        li1 = l1.get_info(ll1)
+        ll2 = l2.find_layer(l1.get_info(ll1))
+        if ll2 is None:
+            raise GeometryDifference(
+                f"Layer {li1} of layout {file1!r} not present in layout {file2!r}."
+            )
+
+        layer_pairs.append((ll1, ll2))
+
+    for ll2 in l2.layer_indices():
+        li2 = l2.get_info(ll2)
+        ll1 = l1.find_layer(l2.get_info(ll2))
+        if ll1 is None:
+            raise GeometryDifference(
+                f"Layer {li2} of layout {file2!r} not present in layout {file1!r}."
+            )
+
+    # Check that topcells are the same
+    tc1_names = [tc.name for tc in l1.top_cells()]
+    tc2_names = [tc.name for tc in l2.top_cells()]
+    tc1_names.sort()
+    tc2_names.sort()
+    if tc1_names != tc2_names:
+        raise GeometryDifference(
+            f"Missing topcell on one of the layouts, or name differs:\n{tc1_names!r}\n{tc2_names!r}"
+        )
+    topcell_pairs = [(l1.cell(tc1_n), l2.cell(tc1_n)) for tc1_n in tc1_names]
+    # Check that dbu are the same
+    if (l1.dbu - l2.dbu) > 1e-6:
+        raise GeometryDifference(
+            f"Database unit of layout {file1!r} ({l1.dbu}) differs from that of layout {file2!r} ({l2.dbu})."
+        )
+
+    # Run the difftool
+    diff = False
+    for tc1, tc2 in topcell_pairs:
+        for ll1, ll2 in layer_pairs:
+            r1 = kdb.Region(tc1.begin_shapes_rec(ll1))
+            r2 = kdb.Region(tc2.begin_shapes_rec(ll2))
+
+            rxor = r1 ^ r2
+            l3.shapes(layout.layer(ll1[0], ll1[1])).insert(rxor)
+
+            if tolerance > 0:
+                rxor.size(-tolerance)
+
+            if not rxor.is_empty():
+                diff = True
+                if verbose:
+                    print(
+                        f"{rxor.size()} differences found in {tc1.name!r} on layer {l1.get_info(ll1)}."
+                    )
+
+            elif verbose:
+                print(
+                    f"No differences found in {tc1.name!r} on layer {l1.get_info(ll1)}."
+                )
+
+    if diff:
+        fn_abgd = []
+        for fn in [file1, file2]:
+            head, tail = os.path.split(fn)
+            abgd = os.path.join(os.path.basename(head), tail)
+            fn_abgd.append(abgd)
+        raise GeometryDifference(
+            "Differences found between layouts {} and {}".format(*fn_abgd)
+        )
+
+
 def difftest(
     component: Component,
     test_name: Optional[str] = None,
     xor: bool = True,
     dirpath: pathlib.Path = CONFIG["gdsdiff"],
+    with_gdstk: bool = True,
 ) -> None:
     """Avoids GDS regressions tests on the GeometryDifference.
 
@@ -87,6 +191,7 @@ def difftest(
         test_name: used to store the GDS file.
         xor: runs xor if there is difference.
         dirpath: defaults to cwd refers to where the test is being invoked.
+        with_gdstk: boolean using gdstk. False uses klayout.
     """
     # containers function_name is different from component.name
     # we store the container with a different name from original component
@@ -115,7 +220,10 @@ def difftest(
     c2 = import_gds(ref_file)
     c = Component(f"{c2.name}_diff")
 
-    xor = run_xor_gdstk(c1, c2, precision=1e-3)
+    if with_gdstk:
+        xor = run_xor_gdstk(c1, c2, precision=1 / 1e3)
+    else:
+        xor = run_xor_klayout(str(ref_file), str(run_file), tolerance=1, verbose=False)
 
     if len(xor.get_polygons()) > 0:
         error = f"XOR polygons {c1.name!r} in {str(run_file)!r} changed from {str(run_file)!r}"
@@ -126,9 +234,9 @@ def difftest(
         )
 
     elif c1.name != c2.name:
-        error = f"Top Cell name {c1.name!r} changed from {c2.name!r}"
+        error = f"Cell name {c1.name!r} changed from {c2.name!r}"
 
-    else:  # no errors
+    else:
         return
 
     logger.error(error)
@@ -155,14 +263,14 @@ def difftest(
         ) from exc
 
 
-def _demo_xor_no_error():
+def test_xor_no_error():
     c1 = gf.components.rectangle(layer=(1, 0), size=(1, 1))
     c2 = gf.components.rectangle(layer=(1, 0), size=(1, 1), cache=False)
     c = run_xor_gdstk(c1, c2)
     assert not c.get_polygons(), c.get_polygons()
 
 
-def _demo_xor_different_layer():
+def test_xor_different_layer():
     c1 = gf.components.rectangle(layer=(1, 0), size=(1, 1))
     c2 = gf.components.rectangle(layer=(2, 0), size=(1, 1), cache=False)
     c = run_xor_gdstk(c1, c2)
