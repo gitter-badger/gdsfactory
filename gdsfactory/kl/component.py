@@ -1,34 +1,37 @@
 import datetime
 import hashlib
-import itertools
 import math
 import os
 import pathlib
 import tempfile
 import uuid
 import warnings
-from collections import Counter, defaultdict
+from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
-import gdstk
+import klayout.db as kdb
 import numpy as np
 import yaml
 from omegaconf import DictConfig, OmegaConf
 from typing_extensions import Literal
 
-from gdsfactory.component_layout import (
-    Label,
-    Polygon,
-    _align,
-    _distribute,
-    _GeometryHelper,
-    _parse_layer,
-)
 from gdsfactory.component_reference import ComponentReference, Coordinate, SizeInfo
 from gdsfactory.config import CONF, logger
 from gdsfactory.cross_section import CrossSection
+from gdsfactory.kl.component_layout import (
+    Label,
+    _align,
+    _distribute,
+    _GeometryHelper,
+    _get_kl_layer,
+    _is_iterable,
+    _kl_polygon_to_array,
+    _objects_to_kl_region,
+    _parse_layer,
+    layout,
+)
 from gdsfactory.layers import LAYER_COLORS, LayerColor, LayerColors
 from gdsfactory.port import (
     Port,
@@ -134,7 +137,7 @@ class Component(_GeometryHelper):
         if with_uuid or name == "Unnamed":
             name += f"_{self.uid}"
 
-        self._cell = gdstk.Cell(name=name)
+        self._cell = layout.create_cell(name)
         self.name = name
         self.info: Dict[str, Any] = {}
 
@@ -143,30 +146,34 @@ class Component(_GeometryHelper):
         self.get_child_name = False
         self._reference_names_counter = Counter()
         self._reference_names_used = set()
-        self._named_references = {}
-        self._references = []
 
         self.ports = {}
+        self.aliases = {}
+
+        self._references = []
+        self.paths = []
+        self.labels = []
+
+    @property
+    def polygons(self):
+        return self.get_polygons(depth=0)
 
     @property
     def references(self):
         return self._references
 
-    @property
-    def polygons(self):
-        return self._cell.polygons
+    def __del__(self):
+        """Delete cell from KLayout database when the Component is deleted/garbage collected from Python."""
+        if not self._cell.destroyed():
+            self._cell.delete()
 
     @property
     def area(self):
-        return self._cell.area
-
-    @property
-    def labels(self):
-        return self._cell.labels
-
-    @property
-    def paths(self):
-        return self._cell.paths
+        kl_region = _objects_to_kl_region([self._cell])
+        area = float(kl_region.area()) * (layout.dbu**2)
+        kl_region.clear()
+        kl_region._destroy()
+        return area
 
     @property
     def name(self):
@@ -176,21 +183,11 @@ class Component(_GeometryHelper):
     def name(self, value):
         self._cell.name = value
 
-    def __iter__(self):
-        """You can iterate over polygons, paths, labels and references."""
-        return itertools.chain(self.polygons, self.paths, self.labels, self.references)
-
-    def get_polygons(
-        self,
-        by_spec: Union[bool, Tuple[int, int]] = False,
-        depth: Optional[int] = None,
-        include_paths: bool = True,
-        as_array: bool = True,
-    ) -> Union[List[Polygon], Dict[Tuple[int, int], List[Polygon]]]:
+    def get_polygons(self, by_spec: bool = True, depth=None):
         """Return a list of polygons in this cell.
 
         Args:
-            by_spec: bool or layer
+            by_spec: bool or tuple
                 If True, the return value is a dictionary with the
                 polygons of each individual pair (layer, datatype), which
                 are used as keys.  If set to a tuple of (layer, datatype),
@@ -200,8 +197,6 @@ class Component(_GeometryHelper):
                 retrieve polygons.  References below this level will result
                 in a bounding box.  If `by_spec` is True the key will be the
                 name of this cell.
-            include_paths: If True, polygonal representation of paths are also included in the result.
-            as_array: when as_array=false, return the Polygon objects instead. polygon objects have more information (especially when by_spec=False) and will be faster to retrieve.
 
         Returns
             out: list of array-like[N][2] or dictionary
@@ -209,61 +204,35 @@ class Component(_GeometryHelper):
                 polygon, or dictionary with with the list of polygons (if
                 `by_spec` is True).
 
-        Note:
-            Instances of `FlexPath` and `RobustPath` are also included in
-            the result by computing their polygonal boundary.
         """
-        import gdsfactory as gf
-
-        if by_spec is True:
-            layers = self.get_layers()
-
-            layer_to_polygons = defaultdict(list)
-
-            for layer in layers:
-                for polygon in self._cell.get_polygons(
-                    depth=depth,
-                    layer=layer[0],
-                    datatype=layer[1],
-                    include_paths=include_paths,
-                ):
-                    if as_array:
-                        layer_to_polygons[layer].append(polygon.points)
-                    else:
-                        layer_to_polygons[layer].append(polygon)
-            return layer_to_polygons
-
-        elif not by_spec:
-            if as_array:
-                return [
-                    polygon.points
-                    for polygon in self._cell.get_polygons(
-                        depth=depth, include_paths=include_paths
-                    )
-                ]
-
-            else:
-                return self._cell.get_polygons(depth=depth, include_paths=include_paths)
-
+        layer_infos = layout.layer_infos()
+        if by_spec:
+            polygons = {}
         else:
-            layer = gf.get_layer(by_spec)
-            if as_array:
-                return [
-                    polygon.points
-                    for polygon in self._cell.get_polygons(
-                        depth=depth,
-                        layer=layer[0],
-                        datatype=layer[1],
-                        include_paths=include_paths,
-                    )
-                ]
-            else:
-                return self._cell.get_polygons(
-                    depth=depth,
-                    layer=layer[0],
-                    datatype=layer[1],
-                    include_paths=include_paths,
-                )
+            polygons = []
+
+        # Loop through each layer in the layout collecting polygons
+        for n, layer_idx in enumerate(layout.layer_indices()):
+            layer_polygons = []
+            all_polygons_iterator = self._cell.begin_shapes_rec(layer_idx)
+            if depth is not None:
+                all_polygons_iterator.max_depth = int(depth)
+            while not all_polygons_iterator.at_end():
+                kl_shape = all_polygons_iterator.shape()
+                if kl_shape.is_polygon():
+                    # Get the klayout polygon in micrometer units (DSimplePolygon)
+                    kl_polygon = kl_shape.dsimple_polygon
+                    # Apply any transformations if that shape was in a child cell
+                    kl_polygon = kl_polygon.transformed(all_polygons_iterator.dtrans())
+                    # Append the transformed polygons to the big list
+                    layer_polygons.append(_kl_polygon_to_array(kl_polygon))
+                all_polygons_iterator.next()
+            if not by_spec:
+                polygons += layer_polygons
+            elif by_spec and (len(layer_polygons) > 0):
+                layer = layer_infos[n]
+                polygons[(layer.layer, layer.datatype)] = layer_polygons
+        return polygons
 
     def get_dependencies(self, recursive: bool = False) -> List["Component"]:
         """Return a set of the cells included in this cell as references.
@@ -275,21 +244,21 @@ class Component(_GeometryHelper):
             out: list of Components referenced by this Component.
         """
         if not recursive:
-            return list({ref.parent for ref in self.references})
-
-        references_set = set()
-        _get_dependencies(self, references_set=references_set)
-        return list(references_set)
+            return self.references.copy()
+        else:
+            references_set = set()
+            _get_dependencies(self, references_set=references_set)
+            return list(references_set)
 
     def get_component_spec(self):
-        return (
-            dict(
-                component=self.settings.function_name,
-                settings=self.settings.changed,
+        if not self.settings:
+            return dict(component=self.name, settings=dict())
+
+        else:
+
+            return dict(
+                component=self.settings.function_name, settings=self.settings.changed
             )
-            if self.settings
-            else dict(component=self.name, settings={})
-        )
 
     def __getitem__(self, key):
         """Allows you to access named_references D['arc2'].
@@ -301,7 +270,7 @@ class Component(_GeometryHelper):
         try:
             return self.named_references[key]
         except KeyError as e:
-            raise KeyError(f"{key!r} not in {self.named_references.keys()}") from e
+            raise KeyError(f"{key} not in {self.named_references.keys()}") from e
 
     def __lshift__(self, element):
         """Convenience operator equivalent to add_ref()."""
@@ -329,7 +298,7 @@ class Component(_GeometryHelper):
             element: Object that will be accessible by alias name.
 
         """
-        if isinstance(element, (ComponentReference, Polygon)):
+        if isinstance(element, ComponentReference):
             self.named_references[key] = element
         else:
             raise ValueError(
@@ -360,7 +329,22 @@ class Component(_GeometryHelper):
 
     @property
     def named_references(self):
-        return self._named_references
+        return {ref.name: ref for ref in self.references}
+
+    @property
+    def aliases(self):
+        warnings.warn(
+            "aliases attribute has been renamed to named_references and may be deprecated in a future version of gdsfactory",
+            DeprecationWarning,
+        )
+        return self.named_references
+
+    @aliases.setter
+    def aliases(self, value):
+        warnings.warn(
+            "Setting aliases is no longer supported. aliases attribute has been renamed to named_references and may be deprecated in a future version of gdsfactory. This operation will have no effect.",
+            DeprecationWarning,
+        )
 
     def add_label(
         self,
@@ -370,7 +354,6 @@ class Component(_GeometryHelper):
         rotation: float = 0,
         anchor: str = "o",
         layer="TEXT",
-        x_reflection=False,
     ) -> Label:
         """Adds Label to the Component.
 
@@ -382,27 +365,23 @@ class Component(_GeometryHelper):
             anchor: {'n', 'e', 's', 'w', 'o', 'ne', 'nw', ...}
                 Position of the anchor relative to the text.
             layer: Specific layer(s) to put Label on.
-            x_reflection: True reflects across the horizontal axis before rotation.
         """
         from gdsfactory.pdk import get_layer
 
         layer = get_layer(layer)
 
-        gds_layer, gds_datatype = layer
-
         if type(text) is not str:
             text = text
         label = Label(
             text=text,
-            origin=position,
+            position=position,
             anchor=anchor,
             magnification=magnification,
             rotation=rotation,
-            layer=gds_layer,
-            texttype=gds_datatype,
-            x_reflection=x_reflection,
+            layer=layer,
+            parent=self,
         )
-        self.add(label)
+        self.labels.append(label)
         return label
 
     @property
@@ -411,10 +390,9 @@ class Component(_GeometryHelper):
 
         it snaps to 3 decimals in um (0.001um = 1nm precision)
         """
-        bbox = self._cell.bounding_box()
-        if bbox is None:
-            bbox = ((0, 0), (0, 0))
-        return np.round(bbox, 3)
+        b = self._cell.dbbox()
+        bbox = np.array(((b.left, b.bottom), (b.right, b.top)))
+        return bbox
 
     @property
     def ports_layer(self) -> Dict[str, str]:
@@ -811,64 +789,50 @@ class Component(_GeometryHelper):
             invert_selection: removes all layers except layers specified.
             recursive: operate on the cells included in this cell.
         """
-        D = self.flatten() if recursive and self.references else self
-        for polygon in D.polygons:
-            if (polygon.layer, polygon.datatype) in layers:
-                D.remove(polygon)
-
-        for path in D.paths:
-            D.remove(
-                path for layer in zip(path.layers, path.datatypes) if layer in layers
+        # Convert layers to KLayout Layer indices
+        layers = [_parse_layer(layer) for layer in layers]
+        kl_layer_indices_to_delete = {
+            _get_kl_layer(layer[0], layer[1])[0] for layer in layers
+        }
+        kl_layer_indices_all = set(layout.layer_indices())
+        if invert_selection:
+            kl_layer_indices_to_delete = (
+                kl_layer_indices_all - kl_layer_indices_to_delete
             )
 
-        if include_labels:
-            new_labels = []
-            for label in D.labels:
-                original_layer = (label.layer, label.texttype)
-                original_layer = _parse_layer(original_layer)
-                if invert_selection:
-                    keep_layer = original_layer in layers
-                else:
-                    keep_layer = original_layer not in layers
-                if keep_layer:
-                    new_labels += [label]
-            D.labels.clear()
-            D.labels.extend(new_labels)
-        return D
+        # If recursive, compile a list of cells which are referenced by this one
+        if recursive:
+            _cells = [layout.cell(i) for i in self._cell.called_cells()] + [self._cell]
+        else:
+            _cells = [self._cell]
+
+        # For each cell, iterate through each layer and clear the shapes
+        for kl_layer_idx in kl_layer_indices_to_delete:
+            for _cell in _cells:
+                _cell.clear(kl_layer_idx)
+        return self
 
     def extract(
         self,
-        layers: List[Union[Tuple[int, int], str]],
+        layers: Union[List[Tuple[int, int]], Tuple[int, int]] = (),
     ) -> "Component":
         """Extract polygons from a Component and returns a new Component.
 
         based on phidl.geometry.
         """
-        from gdsfactory.pdk import get_layer
+        from gdsfactory.name import clean_value
 
+        component = Component(f"{self.name}_{clean_value(layers)}")
         if type(layers) not in (list, tuple):
-            raise ValueError(f"layers {layers!r} needs to be a list or tuple")
-
-        layers = [get_layer(layer) for layer in layers]
-        # component = self.copy()
-        # component._cell.filter(spec=layers, remove=False)
-
-        component = Component()
-        poly_dict = self.get_polygons(by_spec=True, include_paths=False)
-
-        for layer in layers:
-            if layer in poly_dict:
-                polygons = poly_dict[layer]
-                for polygon in polygons:
-                    component.add_polygon(polygon)
-
-        for layer in layers:
-            for path in self._cell.get_paths(layer=layer):
-                component.add(path)
-
+            raise ValueError("layers needs to be a list or tuple")
+        poly_dict = self.get_polygons(by_spec=True)
+        parsed_layer_list = [_parse_layer(layer) for layer in layers]
+        for layer, polys in poly_dict.items():
+            if _parse_layer(layer) in parsed_layer_list:
+                component.add_polygon(polys, layer=layer)
         return component
 
-    def add_polygon(self, points, layer=np.nan):
+    def add_polygon(self, points, layer):
         """Adds a Polygon to the Component.
 
         Args:
@@ -877,61 +841,28 @@ class Component(_GeometryHelper):
         """
         from gdsfactory.pdk import get_layer
 
-        layer = get_layer(layer)
-
-        if layer is None:
-            return None
+        gds_layer, gds_datatype = get_layer(layer)
 
         try:
-            if isinstance(layer, set):
-                return [self.add_polygon(points, ly) for ly in layer]
-            elif all(isinstance(ly, (Layer)) for ly in layer):
-                return [self.add_polygon(points, ly) for ly in layer]
-            elif len(layer) > 2:  # Someone wrote e.g. layer = [1,4,5]
-                raise ValueError(
-                    """ [PHIDL] If specifying multiple layers
-                you must use set notation, e.g. {1,5,8} """
-                )
+            points[0][0][0]  # Try to access first x point
+            return [self.add_polygon(p, layer) for p in points]
         except Exception:
-            pass
+            pass  # Verified points is not a list of polygons, continue on
 
-        if isinstance(points, gdstk.Polygon):
-            # if layer is unspecified or matches original polygon, just add it as-is
-            polygon = points
-            if layer is np.nan or (
-                isinstance(layer, tuple) and (polygon.layer, polygon.datatype) == layer
-            ):
-                polygon = Polygon(polygon.points, polygon.layer, polygon.datatype)
-            else:
-                layer, datatype = _parse_layer(layer)
-                polygon = Polygon(polygon.points, layer, datatype)
-            self.add(polygon)
-            return polygon
+        # If in the form [[1,3,5],[2,4,6]]
+        if len(points[0]) > 2:
+            # Convert to form [[1,2],[3,4],[5,6]]
+            points = np.column_stack(points)
 
-        points = np.asarray(points)
-        if points.ndim == 1 and isinstance(points[0], gdstk.Polygon):
-            return [self.add_polygon(poly, layer=layer) for poly in points]
-        if layer is np.nan:
-            layer = 0
+        points = np.array(points, dtype=np.float64)
 
-        if points.ndim == 2:
-            # add single polygon from points
-            if len(points[0]) > 2:
-                # Convert to form [[1,2],[3,4],[5,6]]
-                points = np.column_stack(points)
-            layer, datatype = _parse_layer(layer)
-            polygon = Polygon(points, layer=layer, datatype=datatype)
-            self.add(polygon)
-            return polygon
-        elif points.ndim == 3:
-            layer, datatype = _parse_layer(layer)
-            polygons = [
-                Polygon(ppoints, layer=layer, datatype=datatype) for ppoints in points
-            ]
-            self.add(*polygons)
-            return polygons
-        else:
-            raise ValueError(f"Unable to add {points.ndim}-dimensional points object")
+        points = np.array(points, dtype=np.float64)
+        polygon = kdb.DSimplePolygon(
+            [kdb.DPoint(x, y) for x, y in points]
+        )  # x and y must be floats
+        self.kl_layer_idx = layout.layer(gds_layer, gds_datatype)
+        self.kl_shape = self._cell.shapes(self.kl_layer_idx).insert(polygon)
+        return polygon
 
     def copy(self) -> "Component":
         return copy(self)
@@ -980,7 +911,6 @@ class Component(_GeometryHelper):
         """
         self.is_unlocked()
         if isinstance(element, ComponentReference):
-            self._cell.add(element._reference)
             self._references.append(element)
         else:
             self._cell.add(element)
@@ -1032,6 +962,7 @@ class Component(_GeometryHelper):
             columns=int(round(columns)),
             rows=int(round(rows)),
             spacing=spacing,
+            parent=self,
         )
         ref.name = None
         self._add(ref)
@@ -1078,7 +1009,8 @@ class Component(_GeometryHelper):
                 Elements in the Component to align.
             alignment : {'x', 'y', 'xmin', 'xmax', 'ymin', 'ymax'}
                 Which edge to align along (e.g. 'ymax' will move the elements such
-                that all of their topmost points are aligned).
+                that all of their topmost points are aligned)
+
         """
         if elements == "all":
             elements = self.polygons + self.references
@@ -1097,17 +1029,10 @@ class Component(_GeometryHelper):
             single_layer: move all polygons are moved to the specified (optional).
         """
         component_flat = Component()
-
-        poly_dict = self.get_polygons(by_spec=True, include_paths=False, as_array=False)
-        for layer, polys in poly_dict.items():
-            if polys:
-                component_flat.add_polygon(polys, layer=single_layer or layer)
-
-        for path in self._cell.get_paths():
-            component_flat.add(path)
+        component_flat._cell = self._cell.copy_instances(component_flat._cell)
+        component_flat._cell.flatten(True)
 
         component_flat.info = self.info.copy()
-        component_flat.add_ports(self.ports)
         return component_flat
 
     def flatten_reference(self, ref: ComponentReference):
@@ -1127,12 +1052,12 @@ class Component(_GeometryHelper):
         self.add_ref(new_component, alias=ref.name)
 
     def add_ref(
-        self, component: "Component", alias: Optional[str] = None, **kwargs
+        self, component: "Component", alias: Optional[str] = None
     ) -> "ComponentReference":
         """Add ComponentReference to the current Component."""
         if not isinstance(component, Component):
             raise TypeError(f"type = {type(Component)} needs to be a Component.")
-        ref = ComponentReference(component, **kwargs)
+        ref = ComponentReference(component=component, parent=self)
         self._add(ref)
         self._register_reference(reference=ref, alias=alias)
         return ref
@@ -1142,6 +1067,8 @@ class Component(_GeometryHelper):
     ) -> None:
         component = reference.parent
         reference.owner = self
+
+        reference._kl_instance.parent_cell = self._cell
 
         if alias is None:
             if reference.name is not None:
@@ -1156,17 +1083,24 @@ class Component(_GeometryHelper):
                 self._reference_names_counter.update({prefix: 1})
                 alias = f"{prefix}_{self._reference_names_counter[prefix]}"
 
-                while alias in self._named_references:
+                while alias in self._reference_names_used:
                     self._reference_names_counter.update({prefix: 1})
                     alias = f"{prefix}_{self._reference_names_counter[prefix]}"
 
         reference.name = alias
-        self._named_references[alias] = reference
 
     @property
     def layers(self):
         """Returns a set of the Layers in the Component."""
-        return self.get_layers()
+        layers = []
+        layer_infos = layout.layer_infos()
+        for layer_idx in layout.layer_indices():
+            kl_iterator = self._cell.begin_shapes_rec(layer_idx)
+            if not kl_iterator.at_end():  # Then there are shapes on that layer
+                layers.append(
+                    (layer_infos[layer_idx].layer, layer_infos[layer_idx].datatype)
+                )
+        return layers
 
     def get_layers(self) -> Set[Tuple[int, int]]:
         """Return a set of (layer, datatype).
@@ -1176,8 +1110,7 @@ class Component(_GeometryHelper):
             import gdsfactory as gf
             gf.components.straight().get_layers() == {(1, 0), (111, 0)}
         """
-        polygons = self._cell.get_polygons(depth=None)
-        return {(polygon.layer, polygon.datatype) for polygon in polygons}
+        return self.layers
 
     def _repr_html_(self):
         """Show geometry in klayout and in matplotlib for jupyter notebooks."""
@@ -1392,9 +1325,7 @@ class Component(_GeometryHelper):
         gdsdir: Optional[PathType] = None,
         unit: float = 1e-6,
         precision: Optional[float] = None,
-        timestamp: Optional[datetime.datetime] = _timestamp2019,
         logging: bool = True,
-        on_duplicate_cell: Optional[str] = "warn",
     ) -> Path:
         """Write component to GDS and returns gdspath.
 
@@ -1403,19 +1334,10 @@ class Component(_GeometryHelper):
             gdsdir: directory for the GDS file. Defaults to /tmp/randomFile/gdsfactory.
             unit: unit size for objects in library. 1um by default.
             precision: for dimensions in the library (m). 1nm by default.
-            timestamp: Defaults to 2019-10-25 for consistent hash.
-                If None uses current time.
-            logging: disable GDS path logging, for example for showing it in klayout.
-            on_duplicate_cell: specify how to resolve duplicate-named cells. Choose one of the following:
-                "warn" (default): overwrite all duplicate cells with one of the duplicates (arbitrarily).
-                "error": throw a ValueError when attempting to write a gds with duplicate cells.
-                "overwrite": overwrite all duplicate cells with one of the duplicates, without warning.
-                None: do not try to resolve (at your own risk!)
         """
         from gdsfactory.pdk import get_grid_size
 
         precision = precision or get_grid_size() * 1e-6
-
         gdsdir = (
             gdsdir or pathlib.Path(tempfile.TemporaryDirectory().name) / "gdsfactory"
         )
@@ -1425,52 +1347,10 @@ class Component(_GeometryHelper):
         gdsdir = gdspath.parent
         gdsdir.mkdir(exist_ok=True, parents=True)
 
-        cells = self.get_dependencies(recursive=True)
-        cell_names = [cell.name for cell in list(cells)]
-        cell_names_unique = set(cell_names)
-
-        if len(cell_names) != len(set(cell_names)):
-            for cell_name in cell_names_unique:
-                cell_names.remove(cell_name)
-
-            if on_duplicate_cell == "error":
-                raise ValueError(
-                    f"Duplicated cell names in {self.name!r}: {cell_names!r}"
-                )
-            elif on_duplicate_cell in {"warn", "overwrite"}:
-                if on_duplicate_cell == "warn":
-                    warnings.warn(
-                        f"Duplicated cell names in {self.name!r}:  {cell_names}",
-                    )
-                cells_dict = {cell.name: cell._cell for cell in cells}
-                cells = cells_dict.values()
-            elif on_duplicate_cell is not None:
-                raise ValueError(
-                    f"on_duplicate_cell: {on_duplicate_cell!r} not in (None, warn, error, overwrite)"
-                )
-
-        all_cells = [self._cell] + sorted(cells, key=lambda cc: cc.name)
-
-        no_name_cells = [
-            cell.name for cell in all_cells if cell.name.startswith("Unnamed")
-        ]
-
-        if no_name_cells:
-            warnings.warn(
-                f"Component {self.name!r} contains {len(no_name_cells)} Unnamed cells"
-            )
-
-        # for cell in all_cells:
-        #     print(cell.name, type(cell))
-
-        lib = gdstk.Library(unit=unit, precision=precision)
-        lib.add(self._cell)
-        lib.add(*self._cell.dependencies(True))
-
-        # self.path = gdspath
-        lib.write_gds(gdspath, timestamp=timestamp)
+        self._cell.write(str(gdspath))
         if logging:
             logger.info(f"Write GDS to {str(gdspath)!r}")
+
         return gdspath
 
     def write_gds_with_metadata(self, *args, **kwargs) -> Path:
@@ -1540,7 +1420,7 @@ class Component(_GeometryHelper):
             d["cells"] = clean_dict(cells)
 
         d["name"] = self.name
-        d["settings"] = clean_dict(dict(self.settings))
+        d["settings"] = dict(self.settings)
         return d
 
     def to_yaml(self, **kwargs) -> str:
@@ -1702,37 +1582,43 @@ class Component(_GeometryHelper):
             raise ValueError(
                 "The reference you asked to absorb does not exist in this Component."
             )
-        ref_polygons = reference.get_polygons(by_spec=True, include_paths=False)
-        for (layer, polys) in ref_polygons.items():
-            [self.add_polygon(points=p, layer=layer) for p in polys]
 
-        self.add(reference.parent.labels)
-        self.add(reference.get_paths())
+        layer_to_polygons = reference.get_polygons(by_spec=True)
         self.remove(reference)
+
+        for layer, polygons in layer_to_polygons.items():
+            self.add_polygon(polygons, layer)
+
         return self
 
     def remove(self, items):
-        """Removes items from a Component, which can include Ports, PolygonSets \
-        CellReferences, ComponentReferences and Labels.
-
-        Args:
-            items: list of Items to be removed from the Component.
-        """
-        if not hasattr(items, "__iter__"):
+        if not _is_iterable(items):
             items = [items]
         for item in items:
             if isinstance(item, Port):
-                self.ports = {k: v for k, v in self.ports.items() if v != item}
-            elif isinstance(item, gdstk.Reference):
-                self._cell.remove(item)
-                item.owner = None
-            elif isinstance(item, ComponentReference):
-                self.references.remove(item)
-                self._cell.remove(item._reference)
-                item.owner = None
-                self._named_references.pop(item.name)
+                try:
+                    self.ports = {k: v for k, v in self.ports.items() if v != item}
+                except Exception as err:
+                    raise ValueError(
+                        f"Component.remove() cannot find Port {item!r}"
+                    ) from err
             else:
-                self._cell.remove(item)
+                try:
+                    if isinstance(item, Label):
+                        kl_shapes = (
+                            item.kl_shape.shapes()
+                        )  # Get the kdb.Shapes container, then
+                        kl_shapes.erase(
+                            item.kl_shape
+                        )  # delete the Shape (polygon or label)
+                    if isinstance(item, ComponentReference):
+                        self.references.remove(item)
+                        self._cell.erase(item.kl_instance)
+                    self.aliases = {k: v for k, v in self.aliases.items() if v != item}
+                except Exception as err:
+                    raise ValueError(
+                        f"Component.remove() cannot find {item!r}"
+                    ) from err
 
         self._bb_valid = False
         return self
@@ -1750,7 +1636,7 @@ class Component(_GeometryHelper):
                 (0.124, 1.748) to (0.12, 1.75).
 
         """
-        polygons_by_spec = self.get_polygons(by_spec=True, as_array=False)
+        polygons_by_spec = self.get_polygons(by_spec=True)
         layers = np.array(list(polygons_by_spec.keys()))
         sorted_layers = layers[np.lexsort((layers[:, 0], layers[:, 1]))]
 
@@ -1758,40 +1644,13 @@ class Component(_GeometryHelper):
         for layer in sorted_layers:
             layer_hash = hashlib.sha1(layer.astype(np.int64)).digest()
             polygons = polygons_by_spec[tuple(layer)]
-            polygons = [_rnd(p.points, precision) for p in polygons]
+            polygons = [_rnd(p, precision) for p in polygons]
             polygon_hashes = np.sort([hashlib.sha1(p).digest() for p in polygons])
             final_hash.update(layer_hash)
             for ph in polygon_hashes:
                 final_hash.update(ph)
 
         return final_hash.hexdigest()
-
-    def get_labels(
-        self, apply_repetitions=True, depth: Optional[int] = None, layer=None
-    ) -> List[Label]:
-        """Return labels.
-
-        Args:
-            apply_repetitions:.
-            depth: None returns all labels and 0 top level.
-            layer: layerspec.
-        """
-        from gdsfactory.pdk import get_layer
-
-        if layer:
-            layer, texttype = get_layer(layer)
-        else:
-            texttype = None
-        return self._cell.get_labels(
-            apply_repetitions=apply_repetitions,
-            depth=depth,
-            layer=layer,
-            texttype=texttype,
-        )
-
-    def remove_labels(self) -> None:
-        """Remove labels."""
-        self._cell.remove(*self.labels)
 
     # Deprecated
     def get_info(self):
@@ -1810,83 +1669,36 @@ class Component(_GeometryHelper):
         return [D.info.copy() for D in D_list]
 
     def remap_layers(
-        self, layermap, include_labels: bool = True, include_paths: bool = True
-    ) -> "Component":
+        self, layermap, include_labels: bool = True, recursive: bool = True
+    ):
         """Moves all polygons in the Component from one layer to another according to the layermap argument.
 
         Args:
             layermap: Dictionary of values in format {layer_from : layer_to}.
             include_labels: Selects whether to move Labels along with polygons.
-            include_paths: Selects whether to move Paths along with polygons.
         """
         layermap = {_parse_layer(k): _parse_layer(v) for k, v in layermap.items()}
 
-        all_D = list(self.get_dependencies(True))
-        all_D.append(self)
-        for D in all_D:
-            for p in D.polygons:
-                layer = (p.layer, p.datatype)
-                if layer in layermap:
-                    new_layer = layermap[layer]
-                    p.layer = new_layer[0]
-                    p.datatype = new_layer[1]
-            if include_labels:
-                for label in D.labels:
-                    original_layer = (label.layer, label.texttype)
-                    original_layer = _parse_layer(original_layer)
-                    if original_layer in layermap:
-                        new_layer = layermap[original_layer]
-                        label.layer = new_layer[0]
-                        label.texttype = new_layer[1]
+        layermap_kl_layer_idx = {}
+        # iterator_dict = _kl_shape_iterator(self._cell, shape_type = shape_type, depth = None)
+        for old_layer, new_layer in layermap.items():
+            old_layer = _parse_layer(old_layer)
+            new_layer = _parse_layer(new_layer)
+            old_idx, temp = _get_kl_layer(old_layer[0], old_layer[1])
+            new_idx, temp = _get_kl_layer(new_layer[0], new_layer[1])
+            layermap_kl_layer_idx[old_idx] = new_idx
 
-            if include_paths:
-                for path in D.paths:
-                    for layer, datatype in zip(path.layers, path.datatypes):
-                        original_layer = (layer, datatype)
-                        original_layer = _parse_layer(original_layer)
-                        if original_layer in layermap:
-                            new_layer = layermap[original_layer]
-                            path.layer = new_layer[0]
-                            path.datatype = new_layer[1]
+        # If recursive, compile a list of cells which are referenced by this one
+        if recursive:
+            _cells = [layout.cell(i) for i in self._cell.called_cells()] + [self._cell]
+        else:
+            _cells = [self._cell]
+
+        # For each cell, iterate through each layer and move the shapes to the new layer
+        for old_idx, new_idx in layermap_kl_layer_idx.items():
+            for _cell in _cells:
+                _cell.move(old_idx, new_idx)
         return self
-
-    def to_component_klayout(self):
-        """Returns a Klayout backend Component"""
-        from gdsfactory.kl.component import Component
-        from gdsfactory.kl.component_reference import ComponentReference
-
-        D = self.flatten()
-        D_copy = Component()
-        D_copy.info = D.info
-
-        for ref in D.references:
-            new_ref = ComponentReference(
-                component=ref.parent,
-                columns=ref.columns,
-                rows=ref.rows,
-                spacing=ref.spacing,
-                origin=ref.origin,
-                rotation=ref.rotation,
-                magnification=ref.magnification,
-                x_reflection=ref.x_reflection,
-                name=ref.name,
-            )
-            D_copy.add(new_ref)
-
-        for port in D.ports.values():
-            D_copy.add_port(port=port)
-        for layer, polygons in D.get_polygons(by_spec=True).items():
-            for polygon in polygons:
-                D_copy.add_polygon(polygon, layer)
-        # for path in D.paths:
-        #     D_copy.add(path)
-        for label in D.labels:
-            D_copy.add_label(
-                text=label.text,
-                position=label.origin,
-                layer=(label.layer, label.texttype),
-            )
-        return D_copy
 
 
 def copy(D: Component) -> Component:
@@ -1904,24 +1716,26 @@ def copy(D: Component) -> Component:
             columns=ref.columns,
             rows=ref.rows,
             spacing=ref.spacing,
-            origin=ref.origin,
             rotation=ref.rotation,
             magnification=ref.magnification,
             x_reflection=ref.x_reflection,
-            name=ref.name,
+            parent=D_copy,
+            origin=ref.origin,
         )
+        # new_ref.name = ref.name if hasattr(ref, "name") else ref.parent.name
+        # new_ref.owner = D_copy
         D_copy.add(new_ref)
 
     for port in D.ports.values():
         D_copy.add_port(port=port)
-    for poly in D.polygons:
-        D_copy.add_polygon(poly)
+    for layer, points in D.get_polygons().items():
+        D_copy.add_polygon(points=points, layer=layer)
     for path in D.paths:
         D_copy.add(path)
     for label in D.labels:
         D_copy.add_label(
             text=label.text,
-            position=label.origin,
+            position=label.position,
             layer=(label.layer, label.texttype),
         )
     return D_copy
@@ -1942,7 +1756,7 @@ def test_get_layers() -> Component:
         add_bbox=None,
     )
     assert c.get_layers() == {(2, 0), (111, 0)}, c.get_layers()
-    c = c.remove_layers([(111, 0)])
+    c.remove_layers((111, 0))
     assert c.get_layers() == {(2, 0)}, c.get_layers()
     return c
 
@@ -1960,7 +1774,7 @@ def recurse_structures(
     ignore_components_prefix: Optional[List[str]] = None,
     ignore_functions_prefix: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    """Recurse component and components references recursively.
+    """Recurse component and its components recursively.
 
     Args:
         component: component to recurse.
@@ -2050,7 +1864,7 @@ def test_extract() -> None:
         length=10,
         width=0.5,
         bbox_layers=[gf.LAYER.WGCLAD],
-        bbox_offsets=[3],
+        bbox_offsets=[0],
         with_bbox=True,
         cladding_layers=None,
         add_pins=None,
@@ -2060,7 +1874,6 @@ def test_extract() -> None:
 
     assert len(c.polygons) == 2, len(c.polygons)
     assert len(c2.polygons) == 1, len(c2.polygons)
-    return c2
 
 
 def hash_file(filepath):
@@ -2088,51 +1901,15 @@ def test_bbox_component() -> None:
     assert c.xsize == 2e-3
 
 
-def test_remap_layers() -> None:
-    import gdsfactory as gf
-
-    c = gf.components.straight(layer=(2, 0))
-    remap = c.remap_layers(layermap={(2, 0): gf.LAYER.WGN})
-    assert remap.hash_geometry() == "1c12fcddd61dc167c80c847abe371b3f8af84a1b"
-
-
-def test_remove_labels() -> None:
-    import gdsfactory as gf
-
-    c = gf.c.straight()
-    c.remove_labels()
-
-    assert len(c.labels) == 0
-
-
-def test_import_gds_settings():
-    import gdsfactory as gf
-
-    c = gf.components.mzi()
-    gdspath = c.write_gds_with_metadata()
-    c2 = gf.import_gds(gdspath, name="mzi_sample")
-    c3 = gf.routing.add_fiber_single(c2)
-    assert c3
-
-
 if __name__ == "__main__":
     import gdsfactory as gf
 
     c = gf.c.mzi()
-    c = c.to_klayout()
-    c.show()
 
-    # c.remove_labels()
-    # print(c.labels)
+    c2 = c.flatten()
+    c2.show()
 
-    # c = gf.components.straight(layer=(2, 0))
-    # remap = c.remap_layers(layermap={(2, 0): gf.LAYER.WGN})
-    # remap.show()
-    # c = test_extract()
-    # c.show()
-
-    # test_get_layers()
-    # test_netlist_simple_width_mismatch_throws_error()
+    # c.show(show_ports=False)
 
     # c = Component("parent")
     # c2 = Component("child")
@@ -2140,17 +1917,27 @@ if __name__ == "__main__":
     # width = 0.5
     # layer = (1, 0)
     # c2.add_polygon([(0, 0), (length, 0), (length, width), (0, width)], layer=layer)
-    # c2.add_polygon([(0, 0), (length, 0), (length, width), (0, width)], layer=(2, 0))
 
-    # c << c2
+    # layer = (2, 0)
+    # width = 1
+    # c2.add_polygon([(0, 0), (length, 0), (length, width), (0, width)], layer=layer)
+    # c2.show(show_ports=True)
+
+    # ref = c << c2
+    # ref.y = 10
     # c.show()
+
+    # c3 = c.remove_layers([(2, 0)])
+    # c3.show()
+    # print(c.get_layers())
 
     # length = 10
     # width = 0.5
     # layer = (1, 0)
     # c.add_polygon([(0, 0), (length, 0), (length, width), (0, width)], layer=layer)
 
-    # c = gf.components.mzi()
+    # import gdsfactory as gf
+    # c = gf.components.bend_euler()
     # c2 = c.mirror()
     # print(c2.info)
     # c = gf.c.mzi()
