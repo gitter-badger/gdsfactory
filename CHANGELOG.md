@@ -1,5 +1,10 @@
 # [CHANGELOG](https://keepachangelog.com/en/1.0.0/)
 
+## [6.0.4](https://github.com/gdsfactory/gdsfactory/pull/867)
+
+- fix import_gds when cellname is provided
+- fix some cases of add_polygon() (particularly when many polygons are being added at once)
+
 ## 6.0.3
 
 - fixes ComponentReference.translate() [PR](https://github.com/gdsfactory/gdsfactory/pull/858)
