@@ -18,6 +18,7 @@ def boolean_klayout(
     layer2: Tuple[int, int] = (1, 0),
     layer3: Tuple[int, int] = (2, 0),
     operation: str = "xor",
+    tolerance: int = 0,
 ) -> Component:
     """Returns a boolean operation between two components Uses klayout python API.
 
@@ -27,6 +28,7 @@ def boolean_klayout(
         layer1: tuple for gdspath1.
         layer2: tuple for gdspath2.
         layer3: for the result of the operation.
+        tolerance: nm to size resulting polygons.
 
     """
     import klayout.db as pya
@@ -66,6 +68,8 @@ def boolean_klayout(
     elif operation == "or":
         result = a | b
 
+    if tolerance > 0:
+        result.size(-tolerance)
     layout3_top.shapes(layout3.layer(layer3[0], layer3[1])).insert(result)
 
     dirpath_build = pathlib.Path(tempfile.TemporaryDirectory().name)

@@ -1,22 +1,4 @@
-"""GDS regression test. Adapted from lytest.
-
-TODO: adapt it into pytest_regressions
-
-from pytest_regressions.file_regression import FileRegressionFixture
-
-class GdsRegressionFixture(FileRegressionFixture):
-    def check(self,
-        contents,
-        extension=".gds",
-        basename=None,
-        fullpath=None,
-        binary=False,
-        obtained_filename=None,
-        check_fn=None,
-            ):
-        try:
-            difftest(c)
-"""
+"""GDS regression test."""
 import filecmp
 import pathlib
 import shutil
@@ -76,7 +58,8 @@ def difftest(
     test_name: Optional[str] = None,
     xor: bool = True,
     dirpath: pathlib.Path = CONFIG["gdsdiff"],
-    with_klayout: bool = True,
+    with_klayout_xor: bool = True,
+    check_name_changes: bool = True,
 ) -> None:
     """Avoids GDS regressions tests on the GeometryDifference.
 
@@ -91,6 +74,8 @@ def difftest(
         test_name: used to store the GDS file.
         xor: runs xor if there is difference.
         dirpath: defaults to cwd refers to where the test is being invoked.
+        with_klayout_xor: if True uses klayout backend, if False uses gdstk.
+        check_name_changes: if True makes sures top cells have the same name.
     """
     # containers function_name is different from component.name
     # we store the container with a different name from original component
@@ -117,36 +102,55 @@ def difftest(
 
     c1 = component
     c2 = import_gds(ref_file)
-    c = Component(f"{c2.name}_diff")
+    name = c1.name
+    c = Component(f"{name}_diff")
+    xor = None
+    error = None
+    boolean_error = (
+        f"XOR polygons {c1.name!r} in {str(run_file)!r} changed from {str(run_file)!r}"
+    )
 
-    if with_klayout:
-        xor = Component("diff")
-        for layer in c1.layers.union(c2.layers):
-            xor.add_ref(
-                boolean_klayout(c1, c2, layer1=layer, layer2=layer, layer3=layer)
-            )
-        xor = xor.flatten()
-
-    else:
-        xor = run_xor_gdstk(c1, c2, precision=0.1 * nm)
-
-    if len(xor.get_polygons()) > 0:
-        error = f"XOR polygons {c1.name!r} in {str(run_file)!r} changed from {str(run_file)!r}"
-
-    elif c1.layers != c2.layers:
+    if c1.layers != c2.layers:
         error = (
             f"Layers {c1.name!r} {c1.layers} changed from {run_file.stem!r} {c2.layers}"
         )
 
-    elif c1.name != c2.name:
+    elif check_name_changes and c1.name != c2.name:
         error = f"Top Cell name {c1.name!r} changed from {c2.name!r}"
 
-    else:  # no errors
+    elif with_klayout_xor:
+        xor = Component("diff")
+        for layer in c1.layers.union(c2.layers):
+            xor.add_ref(
+                boolean_klayout(
+                    c1, c2, layer1=layer, layer2=layer, layer3=layer, tolerance=1
+                )
+            )
+        xor = xor.flatten()
+        xor.name = "diff"
+        if xor.get_polygons():
+            error = boolean_error
+
+    else:
+        xor = run_xor_gdstk(c1, c2, precision=1 * nm)
+        if xor.get_polygons():
+            error = boolean_error
+        xor = xor.flatten()
+        xor.name = "diff"
+
+    if not error:
         return
 
     logger.error(error)
 
-    c << xor
+    if xor:
+        c << xor
+
+    c1 = c1.flatten()
+    c2 = c2.flatten()
+    c1.name = f"{name}_ref"
+    c2.name = f"{name}_run"
+
     c << c1
     c << c2
     c.show(show_ports=False)
@@ -194,6 +198,6 @@ if __name__ == "__main__":
     # c.show()
 
     # c = gf.components.circle(radius=10, layer=(1, 0))
-    c = gf.components.circle()
-    difftest(c, test_name="circle")
+    c = gf.components.mzi(length_x=2.2, name="mzi")
+    difftest(c, test_name="mzi")
     # test_component(c, None, None)
