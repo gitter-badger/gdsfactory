@@ -1700,6 +1700,47 @@ class Component(_GeometryHelper):
                 _cell.move(old_idx, new_idx)
         return self
 
+    def to_component_gdstk(self):
+        from gdsfactory.component import Component
+        from gdsfactory.component_reference import ComponentReference
+
+        D = self
+        D = D.flatten()
+
+        D_copy = Component()
+        D_copy.info = D.info
+
+        for ref in D.references:
+            new_ref = ComponentReference(
+                component=ref.parent,
+                columns=ref.columns,
+                rows=ref.rows,
+                spacing=ref.spacing,
+                rotation=ref.rotation,
+                magnification=ref.magnification,
+                x_reflection=ref.x_reflection,
+                parent=D_copy,
+                origin=ref.origin,
+            )
+            # new_ref.name = ref.name if hasattr(ref, "name") else ref.parent.name
+            # new_ref.owner = D_copy
+            D_copy.add(new_ref)
+
+        for port in D.ports.values():
+            D_copy.add_port(port=port)
+        for layer, polygons in D.get_polygons().items():
+            for polygon in polygons:
+                D_copy.add_polygon(polygon, layer=layer)
+        for path in D.paths:
+            D_copy.add(path)
+        for label in D.labels:
+            D_copy.add_label(
+                text=label.text,
+                position=label.position,
+                layer=(label.layer, label.texttype),
+            )
+        return D_copy
+
 
 def copy(D: Component) -> Component:
     """Returns a Component copy.

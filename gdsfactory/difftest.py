@@ -9,7 +9,6 @@ import gdstk
 import gdsfactory as gf
 from gdsfactory.component import Component
 from gdsfactory.config import CONFIG, logger
-from gdsfactory.geometry.boolean_klayout import boolean_klayout
 from gdsfactory.read.import_gds import import_gds
 from gdsfactory.types import PathType
 
@@ -28,8 +27,6 @@ def run_xor_gdstk(
     """Returns XOR boolean between two Component or files.
 
     Raises a GeometryDifference if files are different.
-
-    FIXME!
 
     Args:
         operand1: Component or gdspath.
@@ -119,13 +116,13 @@ def difftest(
         error = f"Top Cell name {c1.name!r} changed from {c2.name!r}"
 
     elif with_klayout_xor:
-        xor = Component("diff")
-        for layer in c1.layers.union(c2.layers):
-            xor.add_ref(
-                boolean_klayout(
-                    c1, c2, layer1=layer, layer2=layer, layer3=layer, tolerance=1
-                )
-            )
+        from gdsfactory.kl.boolean import boolean
+
+        c1_kl = c1.to_component_klayout()
+        c2_kl = c2.to_component_klayout()
+
+        c3_kl = boolean(c1_kl, c2_kl)
+        xor = c3_kl.to_component_gdstk()
         xor = xor.flatten()
         xor.name = "diff"
         if xor.get_polygons():

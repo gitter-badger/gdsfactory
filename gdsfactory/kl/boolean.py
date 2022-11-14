@@ -16,6 +16,7 @@ def boolean(
     layer2: Tuple[int, int] = (1, 0),
     layer3: Tuple[int, int] = (2, 0),
     operation: str = "xor",
+    tolerance: int = 0,
 ) -> Component:
     """Returns a boolean operation between two components Uses klayout python API.
 
@@ -26,6 +27,7 @@ def boolean(
         layer2: tuple for gdspath2.
         layer3: for the result of the operation.
         operation: can be xor, not, and, or.
+        tolerance: in database units.
 
     """
 
@@ -52,6 +54,9 @@ def boolean(
             result = a & b
         elif operation == "or":
             result = a | b
+
+        if tolerance > 0:
+            result.size(-tolerance)
 
         layout3.shapes(layout.layer(layer3[0], layer3[1])).insert(result)
     return c
