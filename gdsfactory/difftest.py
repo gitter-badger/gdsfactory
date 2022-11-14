@@ -27,8 +27,11 @@ import gdstk
 import gdsfactory as gf
 from gdsfactory.component import Component
 from gdsfactory.config import CONFIG, logger
+from gdsfactory.geometry.boolean_klayout import boolean_klayout
 from gdsfactory.read.import_gds import import_gds
 from gdsfactory.types import PathType
+
+nm = 1e-3
 
 
 class GeometryDifference(Exception):
@@ -38,7 +41,7 @@ class GeometryDifference(Exception):
 def run_xor_gdstk(
     operand1: Union[PathType, Component],
     operand2: Union[PathType, Component],
-    precision: float = 1e-3,
+    precision: float = 1 * nm,
 ) -> Component:
     """Returns XOR boolean between two Component or files.
 
@@ -73,6 +76,7 @@ def difftest(
     test_name: Optional[str] = None,
     xor: bool = True,
     dirpath: pathlib.Path = CONFIG["gdsdiff"],
+    with_klayout: bool = True,
 ) -> None:
     """Avoids GDS regressions tests on the GeometryDifference.
 
@@ -115,7 +119,16 @@ def difftest(
     c2 = import_gds(ref_file)
     c = Component(f"{c2.name}_diff")
 
-    xor = run_xor_gdstk(c1, c2, precision=1e-3)
+    if with_klayout:
+        xor = Component("diff")
+        for layer in c1.layers.union(c2.layers):
+            xor.add_ref(
+                boolean_klayout(c1, c2, layer1=layer, layer2=layer, layer3=layer)
+            )
+        xor = xor.flatten()
+
+    else:
+        xor = run_xor_gdstk(c1, c2, precision=0.1 * nm)
 
     if len(xor.get_polygons()) > 0:
         error = f"XOR polygons {c1.name!r} in {str(run_file)!r} changed from {str(run_file)!r}"
@@ -155,18 +168,18 @@ def difftest(
         ) from exc
 
 
-def _demo_xor_no_error():
+def test_xor_no_error():
     c1 = gf.components.rectangle(layer=(1, 0), size=(1, 1))
     c2 = gf.components.rectangle(layer=(1, 0), size=(1, 1), cache=False)
     c = run_xor_gdstk(c1, c2)
     assert not c.get_polygons(), c.get_polygons()
 
 
-def _demo_xor_different_layer():
+def test_xor_different_layer():
     c1 = gf.components.rectangle(layer=(1, 0), size=(1, 1))
     c2 = gf.components.rectangle(layer=(2, 0), size=(1, 1), cache=False)
     c = run_xor_gdstk(c1, c2)
-    assert not c.get_polygons(), c.get_polygons()
+    assert c.get_polygons(), c.get_polygons()
 
 
 if __name__ == "__main__":
@@ -180,7 +193,7 @@ if __name__ == "__main__":
     # c = run_xor_gdstk(c1, c2)
     # c.show()
 
-    c = gf.components.circle(radius=10, layer=(1, 0))
-    # c = gf.components.circle()
+    # c = gf.components.circle(radius=10, layer=(1, 0))
+    c = gf.components.circle()
     difftest(c, test_name="circle")
     # test_component(c, None, None)
