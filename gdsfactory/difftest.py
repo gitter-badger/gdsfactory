@@ -55,7 +55,7 @@ def difftest(
     test_name: Optional[str] = None,
     xor: bool = True,
     dirpath: pathlib.Path = CONFIG["gdsdiff"],
-    with_klayout_xor: bool = True,
+    with_klayout_xor: bool = False,
     check_name_changes: bool = True,
 ) -> None:
     """Avoids GDS regressions tests on the GeometryDifference.
@@ -129,10 +129,23 @@ def difftest(
             error = boolean_error
 
     else:
-        xor = run_xor_gdstk(c1, c2, precision=1 * nm)
+        # _xor = run_xor_gdstk(c1, c2, precision=1 * nm)
+        # xor_polygons = gdstk.offset(_xor.get_polygons(by_spec=False, as_array=False), distance=-1*nm, use_union=True)
+
+        xor_polygons = gdstk.boolean(
+            operand1=c1.get_polygons(as_array=False),
+            operand2=c2.get_polygons(as_array=False),
+            operation="xor",
+            precision=1 * nm,
+            layer=1,
+            datatype=0,
+        )
+        xor_polygons = gdstk.offset(xor_polygons, distance=-1 * nm, use_union=True)
+
+        xor = Component()
+        xor._cell.add(*xor_polygons)
         if xor.get_polygons():
             error = boolean_error
-        xor = xor.flatten()
         xor.name = "diff"
 
     if not error:
