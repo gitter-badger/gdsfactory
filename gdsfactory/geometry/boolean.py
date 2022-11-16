@@ -127,11 +127,45 @@ def test_boolean() -> None:
 
 
 if __name__ == "__main__":
-    c = gf.Component()
-    e1 = c << gf.components.ellipse()
-    e2 = c << gf.components.ellipse(radii=(10, 6))
-    e3 = c << gf.components.ellipse(radii=(10, 4))
-    e3.movex(5)
-    e2.movex(2)
-    c = boolean(A=[e1, e3], B=e2, operation="A-B")
-    c.show(show_ports=True)
+    # c = gf.Component()
+    # e1 = c << gf.components.ellipse()
+    # e2 = c << gf.components.ellipse(radii=(10, 6))
+    # e3 = c << gf.components.ellipse(radii=(10, 4))
+    # e3.movex(5)
+    # e2.movex(2)
+    # c = boolean(A=[e1, e3], B=e2, operation="A-B")
+
+    import time
+
+    # _show_shapes()
+    # c1 = gf.components.ellipse(radii=[8, 8], layer=(1, 0))
+    # c2 = gf.components.ellipse(radii=[11, 4], layer=(1, 0))
+    # c1 = c1.to_component_klayout()
+    # c2 = c2.to_component_klayout()
+
+    nm = 1e-3
+    n = 50
+    c1 = gf.c.array(gf.c.circle(radius=10), columns=n, rows=n)
+    c2 = gf.c.array(gf.c.circle(radius=9), columns=n, rows=n)
+    # c2 = gf.Component()
+    # ref = c2 << c1
+    # ref.movex(1)
+
+    t0 = time.time()
+    xor_polygons = gdstk.boolean(
+        operand1=c1.get_polygons(as_array=False),
+        operand2=c2.get_polygons(as_array=False),
+        operation="xor",
+        precision=1 * nm,
+        layer=1,
+        datatype=0,
+    )
+    xor_polygons = gdstk.offset(
+        xor_polygons, distance=-1 * nm, use_union=True, layer=1, datatype=0
+    )
+
+    c = Component()
+    c._cell.add(*xor_polygons)
+    t1 = time.time()
+    print(t1 - t0)
+    c.show()

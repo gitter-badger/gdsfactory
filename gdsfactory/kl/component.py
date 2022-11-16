@@ -1092,12 +1092,12 @@ class Component(_GeometryHelper):
     @property
     def layers(self):
         """Returns a set of the Layers in the Component."""
-        layers = []
+        layers = set()
         layer_infos = layout.layer_infos()
         for layer_idx in layout.layer_indices():
             kl_iterator = self._cell.begin_shapes_rec(layer_idx)
             if not kl_iterator.at_end():  # Then there are shapes on that layer
-                layers.append(
+                layers.add(
                     (layer_infos[layer_idx].layer, layer_infos[layer_idx].datatype)
                 )
         return layers
