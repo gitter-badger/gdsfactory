@@ -133,7 +133,7 @@ class ComponentReference(_GeometryHelper):
         x_reflection: bool = False,
         parent=None,
     ) -> None:
-        transformation = kdb.DCplxTrans(
+        self.transformation = kdb.DCplxTrans(
             magnification,  # Magnification
             rotation,  # Rotation
             x_reflection,  # X-axis mirroring
@@ -144,7 +144,7 @@ class ComponentReference(_GeometryHelper):
         b = kdb.DVector(0, float(spacing[1]))
         kl_instance = kdb.DCellInstArray(
             component._cell.cell_index(),
-            transformation,
+            self.transformation,
             a,
             b,
             round(columns),
@@ -321,6 +321,11 @@ class ComponentReference(_GeometryHelper):
 
     def reflect(self, p1=(0, 1), p2=(0, 0)):
         return self.mirror(p1=p1, p2=p2)
+
+    def mirror_v(self):
+        klt = kdb.DCplxTrans.M0 * self.transformation
+        self._apply_kl_transform(klt)
+        return self
 
     def __repr__(self):
         return (
@@ -510,7 +515,10 @@ if __name__ == "__main__":
     # c2.add_polygon([(0, 0), (length, 0), (length, width), (0, width)], layer=layer)
     # c << c2
 
-    c = gf.c.dbr()
+    c = gf.Component("parent")
+    ref = c << gf.c.bend_circular()
+    ref.mirror_v()
+    ref.move((10, 10))
     c.show()
 
     # import gdsfactory as gf

@@ -892,7 +892,7 @@ def round_corners(
         wg_ref = wg.ref()
         wg_ref.move(wg.ports[pname_west], (0, 0))
         if mirror_straight:
-            wg_ref.reflect_v(list(wg_ref.ports.values())[0].name)
+            wg_ref.mirror_v(list(wg_ref.ports.values())[0].name)
 
         wg_ref.rotate(angle)
         wg_ref.move(straight_origin)

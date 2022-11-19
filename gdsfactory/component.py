@@ -635,7 +635,7 @@ class Component(_GeometryHelper):
             _ref.reflect_h(port_id)
 
         if v_mirror:
-            _ref.reflect_v(port_id)
+            _ref.mirror_v(port_id)
 
         if rotation != 0:
             _ref.rotate(rotation, origin)
@@ -1910,8 +1910,8 @@ if __name__ == "__main__":
 
     c = gf.c.mzi()
 
-    c2 = c.flatten()
-    c2.show()
+    # c = c.flatten()
+    c.show()
 
     # c.show(show_ports=False)
 
