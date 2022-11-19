@@ -1,4 +1,4 @@
-# gdsfactory 5.54.0
+# gdsfactory 6.1.1
 
 [![docs](https://github.com/gdsfactory/gdsfactory/actions/workflows/pages.yml/badge.svg)](https://gdsfactory.github.io/gdsfactory/)
 [![PyPI](https://img.shields.io/pypi/v/gdsfactory)](https://pypi.org/project/gdsfactory/)
@@ -52,7 +52,7 @@ It also exports component settings (for measurement and data analysis) and netli
 
 It provides you a common syntax for layout (klayout, gdstk), simulation (Lumerical, tidy3d, MEEP, MPB, DEVSIM, simphony, SAX, ...) and data analysis libraries.
 
-![tool interfaces](https://i.imgur.com/bQslWHO.png)
+![tool interfaces](https://i.imgur.com/9fNLRvJ.png)
 
 
 ## Installation
