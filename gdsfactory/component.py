@@ -632,7 +632,7 @@ class Component(_GeometryHelper):
 
         origin = self.ports[port_id].center if port_id else (0, 0)
         if h_mirror:
-            _ref.reflect_h(port_id)
+            _ref.mirror(port_id)
 
         if v_mirror:
             _ref.mirror_v()

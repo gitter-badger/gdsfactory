@@ -319,9 +319,6 @@ class ComponentReference(_GeometryHelper):
 
         return self
 
-    def reflect(self, p1=(0, 1), p2=(0, 0)):
-        return self.mirror(p1=p1, p2=p2)
-
     def mirror_v(self):
         klt = kdb.DCplxTrans.M0 * self.transformation
         self._apply_kl_transform(klt)

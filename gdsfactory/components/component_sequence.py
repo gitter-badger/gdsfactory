@@ -58,7 +58,7 @@ def _flip_ref(c_ref, port_name):
     if a in [0, 180]:
         c_ref.mirror_v(port_name)
     else:
-        c_ref.reflect_h(port_name)
+        c_ref.mirror(port_name)
     return c_ref
 
 
