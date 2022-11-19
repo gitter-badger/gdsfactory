@@ -33,12 +33,12 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import gdstk
 import numpy as np
-from gdstk import Label
 from omegaconf import OmegaConf
 from pydantic import BaseModel, Extra
 from typing_extensions import Literal
 
 from gdsfactory.component import Component, ComponentReference
+from gdsfactory.component_layout import Label
 from gdsfactory.cross_section import CrossSection
 from gdsfactory.layers import LayerColor, LayerColors
 from gdsfactory.port import Port

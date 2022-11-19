@@ -632,7 +632,7 @@ class Component(_GeometryHelper):
 
         origin = self.ports[port_id].center if port_id else (0, 0)
         if h_mirror:
-            _ref.mirror(port_id)
+            _ref.mirror()
 
         if v_mirror:
             _ref.mirror_v()
@@ -843,23 +843,25 @@ class Component(_GeometryHelper):
 
         gds_layer, gds_datatype = get_layer(layer)
 
-        try:
-            points[0][0][0]  # Try to access first x point
-            return [self.add_polygon(p, layer) for p in points]
-        except Exception:
-            pass  # Verified points is not a list of polygons, continue on
+        if not isinstance(points, kdb.Polygon):
+            try:
+                points[0][0][0]  # Try to access first x point
+                return [self.add_polygon(p, layer) for p in points]
+            except Exception:
+                pass  # Verified points is not a list of polygons, continue on
 
-        # If in the form [[1,3,5],[2,4,6]]
-        if len(points[0]) > 2:
-            # Convert to form [[1,2],[3,4],[5,6]]
-            points = np.column_stack(points)
+            # If in the form [[1,3,5],[2,4,6]]
+            if isinstance(points, Iterable) and len(points[0]) > 2:
+                # Convert to form [[1,2],[3,4],[5,6]]
+                points = np.column_stack(points)
 
-        points = np.array(points, dtype=np.float64)
+            points = np.array(points, dtype=np.float64)
+            polygon = kdb.DSimplePolygon(
+                [kdb.DPoint(x, y) for x, y in points]
+            )  # x and y must be floats
+        else:
+            polygon = points
 
-        points = np.array(points, dtype=np.float64)
-        polygon = kdb.DSimplePolygon(
-            [kdb.DPoint(x, y) for x, y in points]
-        )  # x and y must be floats
         self.kl_layer_idx = layout.layer(gds_layer, gds_datatype)
         self.kl_shape = self._cell.shapes(self.kl_layer_idx).insert(polygon)
         return polygon
@@ -1586,13 +1588,8 @@ class Component(_GeometryHelper):
             raise ValueError(
                 "The reference you asked to absorb does not exist in this Component."
             )
-
-        layer_to_polygons = reference.get_polygons(by_spec=True)
-        self.remove(reference)
-
-        for layer, polygons in layer_to_polygons.items():
-            self.add_polygon(polygons, layer)
-
+        reference._kl_instance.flatten()
+        del self.named_references[reference.name]
         return self
 
     def remove(self, items):

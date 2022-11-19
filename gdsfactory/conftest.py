@@ -4,10 +4,9 @@ import pytest
 from _pytest.fixtures import SubRequest
 
 import gdsfactory as gf
+from gdsfactory import clear_cache
 from gdsfactory.component_layout import layout
 from gdsfactory.config import CONFIG, diff_path
-
-# from gdsfactory import clear_cache
 
 
 @pytest.fixture(scope="session", autouse=False)
@@ -39,6 +38,7 @@ def show_diffs(request: SubRequest) -> None:
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_layout(request: SubRequest) -> None:
+    clear_cache()
     layout.clear()
 
 

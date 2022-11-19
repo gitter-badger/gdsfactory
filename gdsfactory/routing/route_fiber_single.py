@@ -1,6 +1,5 @@
 from typing import Callable, List, Optional, Tuple, Union
 
-import gdstk
 import numpy as np
 
 import gdsfactory as gf
@@ -158,7 +157,7 @@ def route_fiber_single(
     for e in elements_north:
         if isinstance(e, list):
             for ei in e:
-                if isinstance(ei, gdstk.Label):
+                if isinstance(ei, Label):
                     ei.rotation = np.mod(ei.rotation + np.pi, 2 * np.pi)
                     print(ei.rotation)
                     ei.origin = _rotate_points(
@@ -169,7 +168,7 @@ def route_fiber_single(
                     elements_south.append(ei)
                 else:
                     elements_south.append(ei.rotate(180))
-        elif isinstance(e, gdstk.Label):
+        elif isinstance(e, Label):
             ei = e
             ei.rotation = np.mod(ei.rotation + np.pi, 2 * np.pi)
             ei.origin = _rotate_points(

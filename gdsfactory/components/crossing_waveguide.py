@@ -107,10 +107,11 @@ def crossing(
     port_id = 0
     for i in [arm_h, arm_v]:
         c.add(i)
-        c.absorb(i)
         for p in i.ports.values():
             c.add_port(name=port_id, port=p)
             port_id += 1
+
+        # c.absorb(i)
     c.auto_rename_ports()
 
     x.add_bbox_layers(c)
@@ -308,7 +309,7 @@ def crossing45(
     for cmp_ref in [b_tr, b_br, b_tl, b_bl]:
         # cmp_ref = _cmp.ref()
         c.add(cmp_ref)
-        c.absorb(cmp_ref)
+        # c.absorb(cmp_ref)
 
     c.info["bezier_length"] = bend.info["length"]
     c.info["min_bend_radius"] = b_br.info["min_bend_radius"]

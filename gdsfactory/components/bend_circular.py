@@ -76,6 +76,7 @@ if __name__ == "__main__":
         cross_section="rib",
         with_bbox=True,
     )
+    print(c.named_references)
     # c = bend_circular()
     # c = bend_circular(cross_section=gf.cross_section.pin, radius=5)
     # c.pprint_ports()

@@ -336,7 +336,8 @@ def add_pin_path(
         points,
         p.width,
     )
-    component.paths.append(path)
+    # component.paths.append(path)
+    component.add_polygon(path.polygon(), layer=layer)
     gds_layer, gds_datatype = layer
     kl_layer_idx = layout.layer(gds_layer, gds_datatype)
     component._cell.shapes(kl_layer_idx).insert(path)
