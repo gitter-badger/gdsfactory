@@ -635,7 +635,7 @@ class Component(_GeometryHelper):
             _ref.reflect_h(port_id)
 
         if v_mirror:
-            _ref.mirror_v(port_id)
+            _ref.mirror_v()
 
         if rotation != 0:
             _ref.rotate(rotation, origin)

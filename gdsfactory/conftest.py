@@ -4,6 +4,7 @@ import pytest
 from _pytest.fixtures import SubRequest
 
 import gdsfactory as gf
+from gdsfactory.component_layout import layout
 from gdsfactory.config import CONFIG, diff_path
 
 # from gdsfactory import clear_cache
@@ -34,6 +35,11 @@ def datadir(original_datadir, tmpdir):
 def show_diffs(request: SubRequest) -> None:
     c = gf.read.from_gdspaths(diff_path.glob("*.gds"))
     c.show(show_ports=True)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clean_layout(request: SubRequest) -> None:
+    layout.clear()
 
 
 collect_ignore = ["difftest.py"]
