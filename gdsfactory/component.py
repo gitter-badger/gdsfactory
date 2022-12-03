@@ -1140,7 +1140,7 @@ class Component(_GeometryHelper):
         self._named_references[alias] = reference
 
     @property
-    def layers(self):
+    def layers(self) -> Set[Tuple[int, int]]:
         """Returns a set of the Layers in the Component."""
         return self.get_layers()
 

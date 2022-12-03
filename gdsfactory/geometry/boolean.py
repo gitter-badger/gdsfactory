@@ -6,8 +6,6 @@ import gdstk
 
 import gdsfactory as gf
 from gdsfactory.component import Component
-from gdsfactory.component_layout import Polygon, _parse_layer
-from gdsfactory.component_reference import ComponentReference
 from gdsfactory.types import ComponentOrReference, Int2, LayerSpec
 
 
@@ -49,72 +47,24 @@ def boolean(
     'B-A' is equivalent to 'not' with the operands switched.
 
     """
-    D = Component()
-    A_polys = []
-    B_polys = []
-    A = list(A) if isinstance(A, (list, tuple)) else [A]
-    B = list(B) if isinstance(B, (list, tuple)) else [B]
+    c = Component()
 
-    for X, polys in ((A, A_polys), (B, B_polys)):
-        for e in X:
-            if isinstance(e, (Component, ComponentReference)):
-                polys.extend(e.get_polygons())
-            elif isinstance(e, Polygon):
-                polys.extend(e.polygons)
+    layers = A.layers.union(B.layers)
 
-    layer = gf.pdk.get_layer(layer)
-    gds_layer, gds_datatype = _parse_layer(layer)
-
-    operation = operation.lower().replace(" ", "")
-    if operation == "a-b":
-        operation = "not"
-    elif operation == "b-a":
-        operation = "not"
-        A_polys, B_polys = B_polys, A_polys
-    elif operation == "a+b":
-        operation = "or"
-    elif operation not in ["not", "and", "or", "xor", "a-b", "b-a", "a+b"]:
-        raise ValueError(
-            "gdsfactory.geometry.boolean() `operation` "
-            "parameter not recognized, must be one of the "
-            "following:  'not', 'and', 'or', 'xor', 'A-B', "
-            "'B-A', 'A+B'"
-        )
-
-    # Check for trivial solutions
-    if (not A_polys or not B_polys) and operation != "or":
-        if (
-            operation != "not"
-            and operation != "and"
-            and operation == "xor"
-            and not A_polys
-            and not B_polys
-            or operation != "not"
-            and operation == "and"
-        ):
-            p = None
-        elif operation != "not" and operation == "xor" and not A_polys:
-            p = B_polys
-        elif operation != "not" and operation == "xor":
-            p = A_polys
-        elif operation == "not":
-            p = A_polys or None
-    elif not A_polys and not B_polys:
-        p = None
-    else:
-        p = gdstk.boolean(
-            operand1=A_polys,
-            operand2=B_polys,
+    for layer in layers:
+        polygons = gdstk.boolean(
+            operand1=A.get_polygons(by_spec=layer),
+            operand2=B.get_polygons(by_spec=layer),
             operation=operation,
             precision=precision,
-            layer=gds_layer,
-            datatype=gds_datatype,
+            layer=layer[0],
+            datatype=layer[1],
         )
 
-    if p is not None:
-        polygons = D.add_polygon(p, layer=layer)
-        [polygon.fracture(precision=precision) for polygon in polygons]
-    return D
+        if polygons is not None:
+            for polygon in polygons:
+                c.add_polygon(polygon, layer=layer)
+    return c
 
 
 def test_boolean() -> None:
