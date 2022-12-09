@@ -1,31 +1,21 @@
-from typing import Tuple
-
 import klayout.db as pya
 
 import gdsfactory as gf
 from gdsfactory.component import Component
-from gdsfactory.component_layout import layout
 
 valid_operations = ("xor", "not", "and", "or")
 
 
-@gf.cell
 def boolean(
     A: Component,
     B: Component,
-    layer1: Tuple[int, int] = (1, 0),
-    layer2: Tuple[int, int] = (1, 0),
-    layer3: Tuple[int, int] = (2, 0),
     operation: str = "xor",
-) -> Component:
+):
     """Returns a boolean operation between two components Uses klayout python API.
 
     Args:
         A: Component.
         B: Component.
-        layer1: tuple for gdspath1.
-        layer2: tuple for gdspath2.
-        layer3: for the result of the operation.
         operation: can be xor, not, and, or.
 
     """
@@ -36,7 +26,8 @@ def boolean(
     cell1 = A._cell
     cell2 = B._cell
 
-    c = gf.Component()
+    layout = pya.Layout()
+    c = layout.create_cell("boolean")
 
     layers = A.get_layers() + B.get_layers()
     layout3 = c._cell
@@ -54,7 +45,7 @@ def boolean(
         elif operation == "or":
             result = a | b
 
-        layout3.shapes(layout.layer(layer3[0], layer3[1])).insert(result)
+        layout3.shapes(layout.layer(layer[0], layer[1])).insert(result)
     return c
 
 
