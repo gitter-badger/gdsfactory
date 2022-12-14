@@ -1,9 +1,9 @@
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "gdsfactory"
 description = "python library to generate GDS layouts"
 classifiers = [
@@ -15,39 +15,38 @@ classifiers = [
 	"Operating System :: OS Independent",
 ]
 version = "6.9.0"
-authors = [
-    {name = "gdsfactory community", email = "contact@gdsfactory.com"},
-]
+authors = [ "gdsfactory community"]
 keywords = ["eda", "photonics", "python"]
-license = {text = "MIT"}
-dependencies = [
-    "click",
-    "flatdict",
-    "gdstk",
-    "jsondiff",
-    "loguru",
-    "matplotlib",
-    "numpy",
-    "omegaconf",
-    "orjson",
-    "pandas",
-    "pydantic",
-    "pyyaml",
-    "qrcode",
-    "rectpack",
-    "scipy",
-    "shapely",
-    "toolz",
-    "tqdm",
-    "types-PyYAML",
-    "typing_extensions",
-    "watchdog",
-    "xmltodict",
-]
+license = "LICENSE"
 readme = "README.md"
-requires-python = ">=3.7"
 
-[project.optional-dependencies]
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+click="*"
+flatdict="*"
+gdstk="*"
+jsondiff="*"
+loguru="*"
+matplotlib="*"
+numpy="*"
+omegaconf="*"
+orjson="*"
+pandas="*"
+pydantic="*"
+pyyaml="*"
+qrcode="*"
+rectpack="*"
+scipy="*"
+shapely="*"
+toolz="*"
+tqdm="*"
+types-PyYAML="*"
+typing_extensions="*"
+watchdog="*"
+xmltodict="*"
+
+[tool.poetry.extras]
 full = [
 	"klayout >= 0.27.11",
     "autograd",
@@ -124,12 +123,10 @@ docs = [
     "sphinxcontrib-video",
     ]
 
-
-
 [tool.setuptools.packages]
 find = {}
 
-[project.scripts]
+[tool.poetry.scripts]
 gf = "gdsfactory.cli:cli"
 
 [tool.black]
