@@ -1,0 +1,2459 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Tidy3D mode solver &#8212; gdsfactory 6.17.0 documentation</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" href="../../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="MPB mode-solver" href="../mpb/001_mpb_waveguide.html" />
+    <link rel="prev" title="Finite-element mode solver" href="../fem/01_mode_solving.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../../../_static/logo.png" class="logo" alt="logo">
+      
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../README.html">
+   gdsfactory 6.17.0
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../git.html">
+   Installation
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../_2_install.html">
+     Install gdsfactory
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../_2_klayout.html">
+     KLayout integration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../_3_vscode.html">
+     VScode, PyCharm, Spyder, JupyterLab integration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../_4_gdsfactory_in_5minutes.html">
+     gdsfactory in 5 minutes
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../_0_python.html">
+     Python intro
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../_1_git.html">
+     Git: Version control intro
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../workflow.html">
+   Workflow
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../notebooks.html">
+   Layout tutorial
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../00_geometry.html">
+     Component
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../01_references.html">
+     References and ports
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../02_movement.html">
+     Movement
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../03_cells_autoname_and_cache.html">
+     Cell
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../03_layer_stack.html">
+     Layers
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../03_waveguides_paths_crossections.html">
+     Path and CrossSection
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../04_components_.html">
+     Components
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../04_components_hierarchy.html">
+     Components with hierarchy
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../08_pdk.html">
+     PDK
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../09_pdk_import.html">
+     Import PDK
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../07_mask.html">
+     Reticle assembly
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../04_routing.html">
+     Routing optical and RF ports
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../041_routing_electrical.html">
+     Routing electrical
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../common_mistakes.html">
+     Common mistakes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../sdl.html">
+   Schematic Driven Layout
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../20_schematic_driven_layout.html">
+     Schematic Driven layout
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../10_yaml_component.html">
+     YAML Place and AutoRoute
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../11_get_netlist.html">
+     get_netlist
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../plugins_mesh.html">
+   Plugins: Materials and Mesh
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+  <label for="toctree-checkbox-4">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../materials.html">
+     Materials
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../meshing/01_intro.html">
+     Meshing introduction
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../meshing/02_2D_xy_mesh.html">
+     2D meshing: xy cross-section
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../meshing/03_2D_uz_mesh.html">
+     2D meshing: uz cross-section
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../meshing/04_refinement.html">
+     Controlling mesh resolution
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../plugins_process.html">
+   Plugins: Device simulators
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+  <label for="toctree-checkbox-5">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../devsim/01_pin_waveguide.html">
+     DEVSIM TCAD simulator
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../thermal/thermal.html">
+     Thermal
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../../../plugins_mode_solver.html">
+   Plugins: Mode solvers
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+  <label for="toctree-checkbox-6">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="../fem/01_mode_solving.html">
+     Finite-element mode solver
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Tidy3D mode solver
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../mpb/001_mpb_waveguide.html">
+     MPB mode-solver
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../eme/01_meow.html">
+     EME with MEOW
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../plugins_fdtd.html">
+   Plugins: FDTD
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+  <label for="toctree-checkbox-7">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="00_tidy3d.html">
+     FDTD tidy3d
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../meep/001_meep_sparameters.html">
+     Meep FDTD
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../meep/002_gratings.html">
+     FDTD Meep gratings
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../lumerical/1_fdtd_sparameters.html">
+     FDTD Lumerical
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../plugins_circuits.html">
+   Plugins: Circuit simulators
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
+  <label for="toctree-checkbox-8">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../sax/sax.html">
+     SAX circuit simulator
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../lumerical/2_interconnect.html">
+     Lumerical INTERCONNECT
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../contribution.html">
+   Contributing
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../CHANGELOG.html">
+   CHANGELOG
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../components.html">
+   Components
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../api.html">
+   API
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+  <label for="toctree-checkbox-9">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.Component.html">
+     gdsfactory.Component
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.ComponentReference.html">
+     gdsfactory.ComponentReference
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.read.import_gds.html">
+     gdsfactory.read.import_gds
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.read.from_yaml.html">
+     gdsfactory.read.from_yaml
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.read.from_np.html">
+     gdsfactory.read.from_np
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.read.from_phidl.html">
+     gdsfactory.read.from_phidl
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.read.from_dphox.html">
+     gdsfactory.read.from_dphox
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.path.Path.html">
+     gdsfactory.path.Path
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.path.straight.html">
+     gdsfactory.path.straight
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.path.euler.html">
+     gdsfactory.path.euler
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.path.arc.html">
+     gdsfactory.path.arc
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.path.spiral_archimedean.html">
+     gdsfactory.path.spiral_archimedean
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.path.smooth.html">
+     gdsfactory.path.smooth
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.CrossSection.html">
+     gdsfactory.cross_section.CrossSection
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.Transition.html">
+     gdsfactory.cross_section.Transition
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.cross_section.html">
+     gdsfactory.cross_section.cross_section
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.strip.html">
+     gdsfactory.cross_section.strip
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.strip_auto_widen.html">
+     gdsfactory.cross_section.strip_auto_widen
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.heater_metal.html">
+     gdsfactory.cross_section.heater_metal
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.pin.html">
+     gdsfactory.cross_section.pin
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.pn.html">
+     gdsfactory.cross_section.pn
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.strip_heater_metal_undercut.html">
+     gdsfactory.cross_section.strip_heater_metal_undercut
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.strip_heater_metal.html">
+     gdsfactory.cross_section.strip_heater_metal
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.strip_heater_doped.html">
+     gdsfactory.cross_section.strip_heater_doped
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.rib_heater_doped.html">
+     gdsfactory.cross_section.rib_heater_doped
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cross_section.rib_heater_doped_via_stack.html">
+     gdsfactory.cross_section.rib_heater_doped_via_stack
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.path.transition.html">
+     gdsfactory.path.transition
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cell.html">
+     gdsfactory.cell
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.cell_without_validator.html">
+     gdsfactory.cell_without_validator
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.types.Layer.html">
+     gdsfactory.types.Layer
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.types.ComponentSpec.html">
+     gdsfactory.types.ComponentSpec
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.types.LayerSpec.html">
+     gdsfactory.types.LayerSpec
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.types.CrossSectionSpec.html">
+     gdsfactory.types.CrossSectionSpec
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.types.CellSpec.html">
+     gdsfactory.types.CellSpec
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.pack.html">
+     gdsfactory.pack
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.grid.html">
+     gdsfactory.grid
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.grid_with_text.html">
+     gdsfactory.grid_with_text
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.get_netlist.get_netlist.html">
+     gdsfactory.get_netlist.get_netlist
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.write_drc_deck_macro.html">
+     gdsfactory.geometry.write_drc.write_drc_deck_macro
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.rule_width.html">
+     gdsfactory.geometry.write_drc.rule_width
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.rule_space.html">
+     gdsfactory.geometry.write_drc.rule_space
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.rule_min_width_or_space.html">
+     gdsfactory.geometry.write_drc.rule_min_width_or_space
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.rule_separation.html">
+     gdsfactory.geometry.write_drc.rule_separation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.rule_enclosing.html">
+     gdsfactory.geometry.write_drc.rule_enclosing
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.rule_area.html">
+     gdsfactory.geometry.write_drc.rule_area
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.rule_density.html">
+     gdsfactory.geometry.write_drc.rule_density
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.geometry.write_drc.rule_not_inside.html">
+     gdsfactory.geometry.write_drc.rule_not_inside
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.modes.Waveguide.html">
+     gdsfactory.simulation.gtidy3d.modes.Waveguide
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.modes.WaveguideCoupler.html">
+     gdsfactory.simulation.gtidy3d.modes.WaveguideCoupler
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.modes.sweep_width.html">
+     gdsfactory.simulation.gtidy3d.modes.sweep_width
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.modes.sweep_bend_loss.html">
+     gdsfactory.simulation.gtidy3d.modes.sweep_bend_loss
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.modes.group_index.html">
+     gdsfactory.simulation.gtidy3d.modes.group_index
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.modes.plot_sweep_width.html">
+     gdsfactory.simulation.gtidy3d.modes.plot_sweep_width
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.eme.MEOW.html">
+     gdsfactory.simulation.eme.MEOW
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.find_modes_waveguide.html">
+     gdsfactory.simulation.modes.find_modes_waveguide
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.find_modes_coupler.html">
+     gdsfactory.simulation.modes.find_modes_coupler
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.find_neff_vs_width.html">
+     gdsfactory.simulation.modes.find_neff_vs_width
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.find_mode_dispersion.html">
+     gdsfactory.simulation.modes.find_mode_dispersion
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.find_coupling_vs_gap.html">
+     gdsfactory.simulation.modes.find_coupling_vs_gap
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.find_neff_ng_dw_dh.html">
+     gdsfactory.simulation.modes.find_neff_ng_dw_dh
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.plot_neff_ng_dw_dh.html">
+     gdsfactory.simulation.modes.plot_neff_ng_dw_dh
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.plot_neff_vs_width.html">
+     gdsfactory.simulation.modes.plot_neff_vs_width
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.modes.plot_coupling_vs_gap.html">
+     gdsfactory.simulation.modes.plot_coupling_vs_gap
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.plot.plot_sparameters.html">
+     gdsfactory.simulation.plot.plot_sparameters
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.plot.plot_imbalance2x2.html">
+     gdsfactory.simulation.plot.plot_imbalance2x2
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.plot.plot_loss2x2.html">
+     gdsfactory.simulation.plot.plot_loss2x2
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.get_effective_indices.html">
+     gdsfactory.simulation.get_effective_indices
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gmeep.write_sparameters_meep.html">
+     gdsfactory.simulation.gmeep.write_sparameters_meep
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gmeep.write_sparameters_meep_mpi.html">
+     gdsfactory.simulation.gmeep.write_sparameters_meep_mpi
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gmeep.write_sparameters_meep_batch.html">
+     gdsfactory.simulation.gmeep.write_sparameters_meep_batch
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gmeep.write_sparameters_grating.html">
+     gdsfactory.simulation.gmeep.write_sparameters_grating
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gmeep.write_sparameters_grating_mpi.html">
+     gdsfactory.simulation.gmeep.write_sparameters_grating_mpi
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gmeep.write_sparameters_grating_batch.html">
+     gdsfactory.simulation.gmeep.write_sparameters_grating_batch
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.write_sparameters.html">
+     gdsfactory.simulation.gtidy3d.write_sparameters
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.write_sparameters_batch.html">
+     gdsfactory.simulation.gtidy3d.write_sparameters_batch
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.gtidy3d.write_sparameters_grating_coupler.html">
+     gdsfactory.simulation.gtidy3d.write_sparameters_grating_coupler
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.lumerical.write_sparameters_lumerical.html">
+     gdsfactory.simulation.lumerical.write_sparameters_lumerical
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.sax.read.model_from_csv.html">
+     gdsfactory.simulation.sax.read.model_from_csv
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.sax.read.model_from_component.html">
+     gdsfactory.simulation.sax.read.model_from_component
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.sax.plot_model.html">
+     gdsfactory.simulation.sax.plot_model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.sax.models.html">
+     gdsfactory.simulation.sax.models
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.lumerical.interconnect.install_design_kit.html">
+     gdsfactory.simulation.lumerical.interconnect.install_design_kit
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.lumerical.interconnect.add_interconnect_element.html">
+     gdsfactory.simulation.lumerical.interconnect.add_interconnect_element
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.lumerical.interconnect.get_interconnect_settings.html">
+     gdsfactory.simulation.lumerical.interconnect.get_interconnect_settings
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.lumerical.interconnect.send_to_interconnect.html">
+     gdsfactory.simulation.lumerical.interconnect.send_to_interconnect
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.lumerical.interconnect.run_wavelength_sweep.html">
+     gdsfactory.simulation.lumerical.interconnect.run_wavelength_sweep
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.simulation.lumerical.interconnect.plot_wavelength_sweep.html">
+     gdsfactory.simulation.lumerical.interconnect.plot_wavelength_sweep
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../../routing.html">
+   Routing API
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+  <label for="toctree-checkbox-10">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_route.html">
+     gdsfactory.routing.get_route
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_route_from_steps.html">
+     gdsfactory.routing.get_route_from_steps
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.route_quad.html">
+     gdsfactory.routing.route_quad
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.route_sharp.html">
+     gdsfactory.routing.route_sharp
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_bundle.html">
+     gdsfactory.routing.get_bundle
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_bundle_from_steps.html">
+     gdsfactory.routing.get_bundle_from_steps
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_bundle_path_length_match.html">
+     gdsfactory.routing.get_bundle_path_length_match
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.route_ports_to_side.html">
+     gdsfactory.routing.route_ports_to_side
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.route_south.html">
+     gdsfactory.routing.route_south
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_routes_bend180.html">
+     gdsfactory.routing.get_routes_bend180
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_routes_straight.html">
+     gdsfactory.routing.get_routes_straight
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_route_sbend.html">
+     gdsfactory.routing.get_route_sbend
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.get_bundle_sbend.html">
+     gdsfactory.routing.get_bundle_sbend
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.fanout2x2.html">
+     gdsfactory.routing.fanout2x2
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.fanout_component.html">
+     gdsfactory.routing.fanout_component
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.fanout_ports.html">
+     gdsfactory.routing.fanout_ports
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.add_fiber_array.add_fiber_array.html">
+     gdsfactory.routing.add_fiber_array.add_fiber_array
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.add_fiber_single.add_fiber_single.html">
+     gdsfactory.routing.add_fiber_single.add_fiber_single
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.add_electrical_pads_shortest.html">
+     gdsfactory.routing.add_electrical_pads_shortest
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.add_electrical_pads_top.html">
+     gdsfactory.routing.add_electrical_pads_top
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../../_autosummary/gdsfactory.routing.add_electrical_pads_top_dc.html">
+     gdsfactory.routing.add_electrical_pads_top_dc
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../cli.html">
+   Command line interface
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/gdsfactory/gdsfactory"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/gdsfactory/gdsfactory/issues/new?title=Issue%20on%20page%20%2Fnotebooks/plugins/tidy3d/01_tidy3d_modes.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/gdsfactory/gdsfactory/edit/main/docs/notebooks/plugins/tidy3d/01_tidy3d_modes.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Edit this page"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="headerbtn__text-container">suggest edit</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../../../_sources/notebooks/plugins/tidy3d/01_tidy3d_modes.ipynb.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Waveguides">
+   Waveguides
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Sweep-width">
+   Sweep width
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Group-index">
+   Group index
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Bend-modes">
+   Bend modes
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Bend-loss">
+   Bend loss
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Waveguide-coupler">
+   Waveguide coupler
+  </a>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Tidy3D mode solver</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Waveguides">
+   Waveguides
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Sweep-width">
+   Sweep width
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Group-index">
+   Group index
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Bend-modes">
+   Bend modes
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Bend-loss">
+   Bend loss
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#Waveguide-coupler">
+   Waveguide coupler
+  </a>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars and line breaks on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+    white-space: pre;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+.jp-RenderedHTMLCommon thead,
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+.jp-RenderedHTMLCommon th,
+div.rendered_html th {
+  font-weight: bold;
+}
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+.jp-RenderedHTMLCommon tbody tr:hover,
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Tidy3D-mode-solver">
+<h1>Tidy3D mode solver<a class="headerlink" href="#Tidy3D-mode-solver" title="Permalink to this headline">#</a></h1>
+<p>Tidy3d comes with an open source FDFD <a class="reference external" href="https://docs.flexcompute.com/projects/tidy3d/en/latest/notebooks/ModeSolver.html">mode solver</a></p>
+<section id="Waveguides">
+<h2>Waveguides<a class="headerlink" href="#Waveguides" title="Permalink to this headline">#</a></h2>
+<p>Guided Electromagnetic modes are the ones that have an effective index larger than the cladding of the waveguide</p>
+<p>Here is a waveguide of Silicon (n=3.4) surrounded by SiO2 (n=1.44) cladding</p>
+<p>For a 220 nm height x 450 nm width the effective index is 2.466</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import gdsfactory.simulation.gtidy3d as gt
+import matplotlib.pyplot as plt
+
+nm = 1e-3
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:05.047 | INFO     | gdsfactory.config:&lt;module&gt;:48 - Load &#39;/home/runner/work/gdsfactory/gdsfactory/gdsfactory&#39; 6.17.0
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[02:16:06] </span><span style="color: #000080; text-decoration-color: #000080">INFO    </span> Using client version: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.8</span>.<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>                                                     <a href="file:///usr/share/miniconda/envs/anaconda-client-env/lib/python3.9/site-packages/tidy3d/__init__.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">__init__.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///usr/share/miniconda/envs/anaconda-client-env/lib/python3.9/site-packages/tidy3d/__init__.py#112" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">112</span></a>
+</pre></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:06.966 | INFO     | gdsfactory.simulation.gtidy3d:&lt;module&gt;:54 - Tidy3d &#39;1.8.1&#39; installed at [&#39;/usr/share/miniconda/envs/anaconda-client-env/lib/python3.9/site-packages/tidy3d&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>strip = gt.modes.Waveguide(
+    wavelength=1.55,
+    wg_width=0.5,
+    wg_thickness=0.22,
+    slab_thickness=0.0,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+strip.plot_index()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_2_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_2_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>strip.plot_Ex(0)  # TE
+strip.plot_Ey(1)  # TM
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:07.268 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/32ad155b.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_3_1.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_3_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_3_2.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_3_2.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rib = gt.modes.Waveguide(
+    wavelength=1.55,
+    wg_width=0.5,
+    wg_thickness=0.22,
+    slab_thickness=0.15,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+rib.plot_index()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_4_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_4_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rib.plot_Ex(mode_index=0)
+rib.plot_Ey(mode_index=0)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:07.983 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/56153e53.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_5_1.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_5_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_5_2.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_5_2.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>nitride = gt.modes.Waveguide(
+    wavelength=1.55,
+    wg_width=1.0,
+    wg_thickness=0.4,
+    slab_thickness=0.0,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+nitride.plot_index()
+nitride.plot_Ex(0)
+nitride.plot_Ey(0)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_6_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_6_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:08.690 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/91138828.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_6_2.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_6_2.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_6_3.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_6_3.png" />
+</div>
+</div>
+</section>
+<section id="Sweep-width">
+<h2>Sweep width<a class="headerlink" href="#Sweep-width" title="Permalink to this headline">#</a></h2>
+<p>You can sweep the waveguide width and compute the modes.</p>
+<p>By increasing the waveguide width, the waveguide supports many more TE and TM modes. Where TE modes have a dominant Ex field and TM modes have larger Ey fields.</p>
+<p>Notice that waveguides wider than 0.450 um support more than one TE mode. Therefore the maximum width for single mode operation is 0.450 um.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>df = gt.modes.sweep_width(
+    width1=200 * nm,
+    width2=1000 * nm,
+    steps=11,
+    wavelength=1.55,
+    wg_thickness=220 * nm,
+    slab_thickness=0 * nm,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+gt.modes.plot_sweep_width(
+    width1=200 * nm,
+    width2=1000 * nm,
+    steps=11,
+    wavelength=1.55,
+    wg_thickness=220 * nm,
+    slab_thickness=0 * nm,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+plt.axhline(y = 1.44, color = &#39;k&#39;, linestyle = &#39;--&#39;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "2a64c90773b4400dbcdd925663d08362"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:09.255 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/10e5b441.npz mode data from file cache.
+2023-01-03 02:16:09.276 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/33ea7062.npz mode data from file cache.
+2023-01-03 02:16:09.297 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/8a134890.npz mode data from file cache.
+2023-01-03 02:16:09.318 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/548eec24.npz mode data from file cache.
+2023-01-03 02:16:09.339 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/e63d47fe.npz mode data from file cache.
+2023-01-03 02:16:09.361 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/accb98e4.npz mode data from file cache.
+2023-01-03 02:16:09.382 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/6c77208e.npz mode data from file cache.
+2023-01-03 02:16:09.403 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/26c31481.npz mode data from file cache.
+2023-01-03 02:16:09.425 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d6a9a5e1.npz mode data from file cache.
+2023-01-03 02:16:09.446 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d408cef4.npz mode data from file cache.
+2023-01-03 02:16:09.468 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/ef0c53e9.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "253a6f61648040aebd8c959f21507ad0"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:09.499 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/10e5b441.npz mode data from file cache.
+2023-01-03 02:16:09.535 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/33ea7062.npz mode data from file cache.
+2023-01-03 02:16:09.562 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/8a134890.npz mode data from file cache.
+2023-01-03 02:16:09.588 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/548eec24.npz mode data from file cache.
+2023-01-03 02:16:09.615 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/e63d47fe.npz mode data from file cache.
+2023-01-03 02:16:09.641 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/accb98e4.npz mode data from file cache.
+2023-01-03 02:16:09.668 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/6c77208e.npz mode data from file cache.
+2023-01-03 02:16:09.694 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/26c31481.npz mode data from file cache.
+2023-01-03 02:16:09.722 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d6a9a5e1.npz mode data from file cache.
+2023-01-03 02:16:09.748 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d408cef4.npz mode data from file cache.
+2023-01-03 02:16:09.774 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/ef0c53e9.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_8_4.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_8_4.png" />
+</div>
+</div>
+<p><strong>Exercises</strong></p>
+<ul class="simple">
+<li><p>What is the maximum width to support a single TE mode at 1310 nm?</p></li>
+<li><p>For a Silicon Nitride (n=2) 400nm thick waveguide surrounded by SiO2 (n=1.44), what is the maximum width to support a single TE mode at 1550 nm?</p></li>
+<li><p>For two 500x220nm Silicon waveguides surrounded by SiO2, what is the coupling length (100% coupling) for 200 nm gap?</p></li>
+</ul>
+</section>
+<section id="Group-index">
+<h2>Group index<a class="headerlink" href="#Group-index" title="Permalink to this headline">#</a></h2>
+<p>You can also compute the group index for a waveguide.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import gdsfactory.simulation.gtidy3d as gt
+import numpy as np
+import matplotlib.pyplot as plt
+
+nm = 1e-3
+
+ng = gt.modes.group_index(
+    wg_width=500 * nm,
+    wavelength=1.55,
+    wg_thickness=220 * nm,
+    slab_thickness=0 * nm,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+print(ng)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:10.464 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/32ad155b.npz mode data from file cache.
+2023-01-03 02:16:10.485 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/efa8c237.npz mode data from file cache.
+2023-01-03 02:16:10.506 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/404735ef.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+4.17024827003479
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>wavelengths = np.arange(1500, 1601, 50) * 1e-3
+wg_widths = np.arange(400, 601, 50) * 1e-3
+
+wg_settings = dict(
+    wg_thickness=220 * nm,
+    slab_thickness=0 * nm,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+
+for wg_width in wg_widths:
+    ng = [
+        gt.modes.group_index(wavelength=wavelength, wg_width=wg_width, **wg_settings)
+        for wavelength in wavelengths
+    ]
+    plt.plot(wavelengths, ng, label=f&quot;{wg_width*1e3}&quot;)
+
+plt.legend()
+plt.xlabel(&quot;Wavelength (um)&quot;)
+plt.xlabel(&quot;ng&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:10.534 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/db70ae1c.npz mode data from file cache.
+2023-01-03 02:16:10.556 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/e2b9236e.npz mode data from file cache.
+2023-01-03 02:16:10.580 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/8a9e2a9c.npz mode data from file cache.
+2023-01-03 02:16:10.601 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/ee828ce2.npz mode data from file cache.
+2023-01-03 02:16:10.623 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/01cfdbc2.npz mode data from file cache.
+2023-01-03 02:16:10.645 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/a33c77fc.npz mode data from file cache.
+2023-01-03 02:16:10.665 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/ad20a498.npz mode data from file cache.
+2023-01-03 02:16:10.686 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/bbc431bc.npz mode data from file cache.
+2023-01-03 02:16:10.708 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/db706789.npz mode data from file cache.
+2023-01-03 02:16:10.741 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/7addc938.npz mode data from file cache.
+2023-01-03 02:16:10.762 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/fbea5e16.npz mode data from file cache.
+2023-01-03 02:16:10.785 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/f980cdf3.npz mode data from file cache.
+2023-01-03 02:16:10.805 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/f39af794.npz mode data from file cache.
+2023-01-03 02:16:10.826 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/f322cd74.npz mode data from file cache.
+2023-01-03 02:16:10.848 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d9f76608.npz mode data from file cache.
+2023-01-03 02:16:10.870 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/e1af5407.npz mode data from file cache.
+2023-01-03 02:16:10.891 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/3438337e.npz mode data from file cache.
+2023-01-03 02:16:10.913 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d223d7bc.npz mode data from file cache.
+2023-01-03 02:16:10.934 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/69370b5a.npz mode data from file cache.
+2023-01-03 02:16:10.956 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/8eff82a6.npz mode data from file cache.
+2023-01-03 02:16:10.977 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/1644b179.npz mode data from file cache.
+2023-01-03 02:16:10.997 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/32ad155b.npz mode data from file cache.
+2023-01-03 02:16:11.015 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/efa8c237.npz mode data from file cache.
+2023-01-03 02:16:11.036 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/404735ef.npz mode data from file cache.
+2023-01-03 02:16:11.057 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/59b63da9.npz mode data from file cache.
+2023-01-03 02:16:11.078 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/3ff08735.npz mode data from file cache.
+2023-01-03 02:16:11.099 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/f7fd487f.npz mode data from file cache.
+2023-01-03 02:16:11.121 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/5c3c4d82.npz mode data from file cache.
+2023-01-03 02:16:11.142 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/77e12ccd.npz mode data from file cache.
+2023-01-03 02:16:11.164 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/ac22b51c.npz mode data from file cache.
+2023-01-03 02:16:11.184 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/3af735b0.npz mode data from file cache.
+2023-01-03 02:16:11.205 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/03d8ba20.npz mode data from file cache.
+2023-01-03 02:16:11.227 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/6d5f5f97.npz mode data from file cache.
+2023-01-03 02:16:11.248 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d0700ab9.npz mode data from file cache.
+2023-01-03 02:16:11.269 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d4c1b681.npz mode data from file cache.
+2023-01-03 02:16:11.291 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/732df3db.npz mode data from file cache.
+2023-01-03 02:16:11.312 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/f2834600.npz mode data from file cache.
+2023-01-03 02:16:11.333 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d0570d8b.npz mode data from file cache.
+2023-01-03 02:16:11.355 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/9e405786.npz mode data from file cache.
+2023-01-03 02:16:11.375 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/10629d02.npz mode data from file cache.
+2023-01-03 02:16:11.395 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/d6451ecc.npz mode data from file cache.
+2023-01-03 02:16:11.417 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/1f79f8ed.npz mode data from file cache.
+2023-01-03 02:16:11.439 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/c0b7d21b.npz mode data from file cache.
+2023-01-03 02:16:11.459 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/ba05adb0.npz mode data from file cache.
+2023-01-03 02:16:11.480 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/a0d874c3.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_12_1.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_12_1.png" />
+</div>
+</div>
+</section>
+<section id="Bend-modes">
+<h2>Bend modes<a class="headerlink" href="#Bend-modes" title="Permalink to this headline">#</a></h2>
+<p>You can compute bend modes specifying the bend radius.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>strip_bend = gt.modes.Waveguide(
+    wavelength=1.55,
+    wg_width=0.5,
+    wg_thickness=0.22,
+    slab_thickness=0.0,
+    bend_radius=3,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># lets plot the fundamental TE mode
+strip_bend.plot_Ex(0)
+strip_bend.plot_Ey(0)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:11.668 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/9e1ab14b.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_15_1.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_15_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_15_2.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_15_2.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># lets plot the fundamental TM mode
+strip_bend.plot_Ex(1)
+strip_bend.plot_Ey(1)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_16_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_16_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_16_1.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_16_1.png" />
+</div>
+</div>
+</section>
+<section id="Bend-loss">
+<h2>Bend loss<a class="headerlink" href="#Bend-loss" title="Permalink to this headline">#</a></h2>
+<p>You can also compute the losses coming from the mode mismatch from the bend into a straight waveguide. To compute the bend loss due to mode mismatch you can calculate the mode overlap of the straight mode and the bent mode. Because there are two mode mismatch interfaces the total loss due to mode mismatch will be squared (from bend to straight and from straight to bend).</p>
+<p><img alt="image0" src="https://i.imgur.com/M1Yysdr.png" /></p>
+<p><a class="reference external" href="https://ieeexplore.ieee.org/ielaam/50/8720127/8684870-aam.pdf">from paper</a></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import gdsfactory.simulation.gtidy3d as gt
+import matplotlib.pyplot as plt
+
+r, integral = gt.modes.sweep_bend_loss(
+    wavelength=1.55,
+    wg_width=0.5,
+    wg_thickness=0.22,
+    slab_thickness=0.0,
+    bend_radius_min=2.0,
+    bend_radius_max=5,
+    steps=4,
+    mode_index=0,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+
+plt.title(&#39;Bend90 loss for TE polarization&#39;)
+plt.plot(r, integral, &quot;.&quot;)
+plt.xlabel(&quot;bend radius (um)&quot;)
+plt.ylabel(&quot;Transmission&quot;)
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "25dfde297a6043239d4a1c9e54d86f20"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:12.733 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/32ad155b.npz mode data from file cache.
+2023-01-03 02:16:12.756 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/b61d8db9.npz mode data from file cache.
+2023-01-03 02:16:12.776 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/9e1ab14b.npz mode data from file cache.
+2023-01-03 02:16:12.798 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/b60c413e.npz mode data from file cache.
+2023-01-03 02:16:12.821 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/fe139da7.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_18_2.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_18_2.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.title(&#39;Bend90 loss for TE polarization&#39;)
+plt.plot(r, -10*np.log10(integral), &quot;.&quot;)
+plt.xlabel(&quot;bend radius (um)&quot;)
+plt.ylabel(&quot;Loss (dB)&quot;)
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_19_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_19_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import gdsfactory.simulation.gtidy3d as gt
+import matplotlib.pyplot as plt
+
+r, integral = gt.modes.sweep_bend_loss(
+    wavelength=1.55,
+    wg_width=0.5,
+    wg_thickness=0.22,
+    slab_thickness=0.0,
+    bend_radius_min=3.0,
+    bend_radius_max=20,
+    steps=4,
+    mode_index=1,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+
+plt.title(&#39;Bend90 loss for TM polarization&#39;)
+plt.ylim(ymin = min(integral), ymax=1)
+plt.plot(r, integral, &quot;.&quot;)
+plt.xlabel(&quot;bend radius (um)&quot;)
+plt.ylabel(&quot;Transmission&quot;)
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "88c658a4ce3c43d99f146016587e5aec"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:13.087 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/32ad155b.npz mode data from file cache.
+2023-01-03 02:16:13.108 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/9e1ab14b.npz mode data from file cache.
+2023-01-03 02:16:13.131 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/24a6c53e.npz mode data from file cache.
+2023-01-03 02:16:13.154 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/c7b81884.npz mode data from file cache.
+2023-01-03 02:16:13.176 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/736aea86.npz mode data from file cache.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_20_2.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_20_2.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.plot(r, -10*np.log10(integral), &quot;.&quot;)
+plt.title(&#39;Bend90 loss for TM polarization&#39;)
+plt.xlabel(&quot;bend radius (um)&quot;)
+plt.ylabel(&quot;Loss (dB)&quot;)
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_21_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_21_0.png" />
+</div>
+</div>
+<p><strong>Exercises</strong></p>
+<ul class="simple">
+<li><p>For a 500nm wide 220nm thick Silicon waveguide surrounded by SiO2, what is the minimum bend radius to have less than 0.04dB loss for TE polarization at 1550nm?</p></li>
+<li><p>For a 500nm wide 220nm thick Silicon waveguide surrounded by SiO2, what is the minimum bend radius to have 99% power transmission for TM polarization at 1550nm?</p></li>
+</ul>
+</section>
+<section id="Waveguide-coupler">
+<h2>Waveguide coupler<a class="headerlink" href="#Waveguide-coupler" title="Permalink to this headline">#</a></h2>
+<p>You can also compute the modes of a waveguide coupler.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>wg_width1     wg_width2
+&lt;-------&gt;     &lt;-------&gt;
+ _______   |   _______   __
+|       |  |  |       | |
+|       |  |  |       | |
+|       |_____|       | | wg_thickness
+|slab_thickness       | |
+|_____________________| |__
+        &lt;-----&gt;
+          gap
+</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>c = gt.modes.WaveguideCoupler(
+    wavelength=1.55,
+    wg_width1=500 * nm,
+    wg_width2=500 * nm,
+    gap=200 * nm,
+    wg_thickness=220 * nm,
+    slab_thickness=100 * nm,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+c.plot_index()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_24_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_24_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>c.plot_Ex(0)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:14.525 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:589 - write /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/52ba9e71.npz mode data to file cache.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_25_1.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_25_1.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>c.plot_Ex(1)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_26_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_26_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>c = gt.modes.WaveguideCoupler(
+    wavelength=1.55,
+    wg_width1=500 * nm,
+    wg_width2=500 * nm,
+    gap=200 * nm,
+    wg_thickness=220 * nm,
+    slab_thickness=0 * nm,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+c.plot_index()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_27_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_27_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>c.plot_Ex(0)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:16.285 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:589 - write /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/ed01fcda.npz mode data to file cache.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_28_1.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_28_1.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>c.plot_Ex(1)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_29_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_29_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import gdsfactory.simulation.gtidy3d as gt
+import matplotlib.pyplot as plt
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>nm = 1e-3
+si = gt.modes.si
+sio2 = gt.modes.sio2
+c = gt.modes.WaveguideCoupler(
+    wavelength=1.55,
+    wg_width1=500 * nm,
+    wg_width2=500 * nm,
+    gap=200 * nm,
+    wg_thickness=220 * nm,
+    slab_thickness=0 * nm,
+    ncore=&quot;si&quot;,
+    nclad=&quot;sio2&quot;,
+)
+c.plot_index()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_31_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_31_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gaps = [150, 200, 250, 300]
+coupling_length = [
+    gt.modes.WaveguideCoupler(
+        wavelength=1.55,
+        wg_width1=500 * nm,
+        wg_width2=500 * nm,
+        gap=gap * nm,
+        wg_thickness=220 * nm,
+        slab_thickness=0 * nm,
+        ncore=&quot;si&quot;,
+        nclad=&quot;sio2&quot;,
+    ).find_coupling(power_ratio=1)
+    for gap in gaps
+]
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2023-01-03 02:16:17.941 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:589 - write /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/0b731432.npz mode data to file cache.
+2023-01-03 02:16:17.960 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:424 - load /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/ed01fcda.npz mode data from file cache.
+2023-01-03 02:16:18.844 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:589 - write /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/b5e46470.npz mode data to file cache.
+2023-01-03 02:16:19.545 | INFO     | gdsfactory.simulation.gtidy3d.modes:compute_modes:589 - write /home/runner/work/gdsfactory/gdsfactory/gdslib/modes/e48d53b5.npz mode data to file cache.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.plot(gaps, coupling_length, &quot;.&quot;)
+plt.xlabel(&quot;gap (nm)&quot;)
+plt.ylabel(&quot;100% coupling length (um)&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_33_0.png" src="../../../_images/notebooks_plugins_tidy3d_01_tidy3d_modes_33_0.png" />
+</div>
+</div>
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"cb4dcc83b8a744488aa2c3d2842d8892": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "713d96afd6b94e56a6e1008315746eb1": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "bar_color": null, "description_width": ""}}, "730aa1f7ccba46e6bb410c1ebcc38e55": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_cb4dcc83b8a744488aa2c3d2842d8892", "max": 11.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_713d96afd6b94e56a6e1008315746eb1", "tabbable": null, "tooltip": null, "value": 11.0}}, "4c90728d72c9485589b0dcbea95e022c": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "ac2afe3a76c240c09a352d1c3193555d": {"model_name": "HTMLStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "background": null, "description_width": "", "font_size": null, "text_color": null}}, "a62ce903c5dd4a018f77be041f9a56d0": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HTMLView", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_4c90728d72c9485589b0dcbea95e022c", "placeholder": "\u200b", "style": "IPY_MODEL_ac2afe3a76c240c09a352d1c3193555d", "tabbable": null, "tooltip": null, "value": "100%"}}, "5431fdec86df44568e0a6a9e12366c3e": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "e225ff9314b1498fa566675723d9c50d": {"model_name": "HTMLStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "background": null, "description_width": "", "font_size": null, "text_color": null}}, "2da0fa81f4474135aef362c681ddfaa4": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HTMLView", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_5431fdec86df44568e0a6a9e12366c3e", "placeholder": "\u200b", "style": "IPY_MODEL_e225ff9314b1498fa566675723d9c50d", "tabbable": null, "tooltip": null, "value": " 11/11 [00:00&lt;00:00, 44.96it/s]"}}, "7e17b12547d34a1f8109a8660b4b6bd4": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "2a64c90773b4400dbcdd925663d08362": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_a62ce903c5dd4a018f77be041f9a56d0", "IPY_MODEL_730aa1f7ccba46e6bb410c1ebcc38e55", "IPY_MODEL_2da0fa81f4474135aef362c681ddfaa4"], "layout": "IPY_MODEL_7e17b12547d34a1f8109a8660b4b6bd4", "tabbable": null, "tooltip": null}}, "06417ec592dd41d599366981d06ac75f": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "2a5fcd55d71547c6bf5682eaeb958f27": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "bar_color": null, "description_width": ""}}, "634c684b17564e65ad9d994a9a2603d8": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_06417ec592dd41d599366981d06ac75f", "max": 11.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_2a5fcd55d71547c6bf5682eaeb958f27", "tabbable": null, "tooltip": null, "value": 11.0}}, "a9241beac0bc4ef3b1872f93365b61fc": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "f5fdff8ef83541829887637498f23022": {"model_name": "HTMLStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "background": null, "description_width": "", "font_size": null, "text_color": null}}, "fa22b27f16de4dae9478aafd6ec47334": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HTMLView", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_a9241beac0bc4ef3b1872f93365b61fc", "placeholder": "\u200b", "style": "IPY_MODEL_f5fdff8ef83541829887637498f23022", "tabbable": null, "tooltip": null, "value": "100%"}}, "b18f26612a594265bae366f59fc4920f": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "e727b7ee9d044542bc3fb4af4565e05b": {"model_name": "HTMLStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "background": null, "description_width": "", "font_size": null, "text_color": null}}, "39668b8200e34cbeb271446a098aae7e": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HTMLView", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_b18f26612a594265bae366f59fc4920f", "placeholder": "\u200b", "style": "IPY_MODEL_e727b7ee9d044542bc3fb4af4565e05b", "tabbable": null, "tooltip": null, "value": " 11/11 [00:00&lt;00:00, 35.21it/s]"}}, "82875539f2af4e6b8dc994b2072452bc": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "253a6f61648040aebd8c959f21507ad0": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_fa22b27f16de4dae9478aafd6ec47334", "IPY_MODEL_634c684b17564e65ad9d994a9a2603d8", "IPY_MODEL_39668b8200e34cbeb271446a098aae7e"], "layout": "IPY_MODEL_82875539f2af4e6b8dc994b2072452bc", "tabbable": null, "tooltip": null}}, "51e6e83ec63a4d1fac6583ef33e1336b": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": "20px"}}, "0f21ecd2c31f4238937c5857480b4a63": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "bar_color": null, "description_width": ""}}, "6aa4c7689b3d4d4ba7f9877205dbe0ea": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_51e6e83ec63a4d1fac6583ef33e1336b", "max": 1.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_0f21ecd2c31f4238937c5857480b4a63", "tabbable": null, "tooltip": null, "value": 1.0}}, "8fa7620ef3874615a18070c57cca5d83": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "bf11acfa9a484e8d8a77cd470899ae0a": {"model_name": "HTMLStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "background": null, "description_width": "", "font_size": null, "text_color": null}}, "32417259bc6a4154817e06a1c6f6ca9a": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HTMLView", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_8fa7620ef3874615a18070c57cca5d83", "placeholder": "\u200b", "style": "IPY_MODEL_bf11acfa9a484e8d8a77cd470899ae0a", "tabbable": null, "tooltip": null, "value": ""}}, "56e598ee4a4440cf84eebb30c9df764b": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "3bc44da2438d42469d23a5d6496c5f70": {"model_name": "HTMLStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "background": null, "description_width": "", "font_size": null, "text_color": null}}, "641ba826aaac43cc84e6ce7f5a104f82": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HTMLView", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_56e598ee4a4440cf84eebb30c9df764b", "placeholder": "\u200b", "style": "IPY_MODEL_3bc44da2438d42469d23a5d6496c5f70", "tabbable": null, "tooltip": null, "value": " 4/? [00:00&lt;00:00, 33.45it/s]"}}, "9b730eabcd5742308f93d3be1432daa6": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "25dfde297a6043239d4a1c9e54d86f20": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_32417259bc6a4154817e06a1c6f6ca9a", "IPY_MODEL_6aa4c7689b3d4d4ba7f9877205dbe0ea", "IPY_MODEL_641ba826aaac43cc84e6ce7f5a104f82"], "layout": "IPY_MODEL_9b730eabcd5742308f93d3be1432daa6", "tabbable": null, "tooltip": null}}, "87b160e3d9d14445ad4d0214ec37b5eb": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": "20px"}}, "3de929616257420b9351040d85776568": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "bar_color": null, "description_width": ""}}, "847033ccf3514113838693fe48e7c77b": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_87b160e3d9d14445ad4d0214ec37b5eb", "max": 1.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_3de929616257420b9351040d85776568", "tabbable": null, "tooltip": null, "value": 1.0}}, "eba3ef5ca31e4ca1ad3878b20fcaf6b5": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "9893b0ec7ea64a2b90462cfb34c4a5c1": {"model_name": "HTMLStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "background": null, "description_width": "", "font_size": null, "text_color": null}}, "b085d1fbe87242ea8100cc698902e045": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HTMLView", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_eba3ef5ca31e4ca1ad3878b20fcaf6b5", "placeholder": "\u200b", "style": "IPY_MODEL_9893b0ec7ea64a2b90462cfb34c4a5c1", "tabbable": null, "tooltip": null, "value": ""}}, "0af84feffaa54ccca3c1b3bc54272adf": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "113df757b9244bde8cb1c18157464da6": {"model_name": "HTMLStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "background": null, "description_width": "", "font_size": null, "text_color": null}}, "d141186e4307482aaaa76e142f41b349": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HTMLView", "description": "", "description_allow_html": false, "layout": "IPY_MODEL_0af84feffaa54ccca3c1b3bc54272adf", "placeholder": "\u200b", "style": "IPY_MODEL_113df757b9244bde8cb1c18157464da6", "tabbable": null, "tooltip": null, "value": " 4/? [00:00&lt;00:00, 33.69it/s]"}}, "275e6ceef3cb48c792b9daa9e130c0a4": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "88c658a4ce3c43d99f146016587e5aec": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_b085d1fbe87242ea8100cc698902e045", "IPY_MODEL_847033ccf3514113838693fe48e7c77b", "IPY_MODEL_d141186e4307482aaaa76e142f41b349"], "layout": "IPY_MODEL_275e6ceef3cb48c792b9daa9e130c0a4", "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}
+</script></section>
+</section>
+
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="../fem/01_mode_solving.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Finite-element mode solver</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="../mpb/001_mpb_waveguide.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">MPB mode-solver</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+      &copy; Copyright 2020, MIT License.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>
